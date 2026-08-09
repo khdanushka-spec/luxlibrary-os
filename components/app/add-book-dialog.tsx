@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { CheckCircle2, Plus, Sparkles, X } from "lucide-react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
+import { addBook } from "@/lib/add-book-actions";
 
 const GENRE_OPTIONS = [
   "Literary Fiction",
@@ -17,10 +19,17 @@ const FORMAT_OPTIONS = ["Hardcover", "Paperback", "Ebook", "Audiobook", "Leather
 const STATUS_OPTIONS = ["Wishlist", "Unread", "Reading", "Completed", "DNF"];
 
 export function AddBookDialog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
+  const [genre, setGenre] = useState(GENRE_OPTIONS[0]);
+  const [format, setFormat] = useState(FORMAT_OPTIONS[0]);
+  const [status, setStatus] = useState(STATUS_OPTIONS[0]);
 
   useEffect(() => {
     if (!open) return;
@@ -34,14 +43,28 @@ export function AddBookDialog() {
   function close() {
     setOpen(false);
     setSubmitted(false);
+    setError(null);
     setTitle("");
     setAuthor("");
+    setGenre(GENRE_OPTIONS[0]);
+    setFormat(FORMAT_OPTIONS[0]);
+    setStatus(STATUS_OPTIONS[0]);
   }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim() || !author.trim()) return;
-    setSubmitted(true);
+    setError(null);
+
+    startTransition(async () => {
+      const result = await addBook({ title, author, genre, format, status });
+      if (result.ok) {
+        setSubmitted(true);
+        router.refresh();
+      } else {
+        setError(result.error);
+      }
+    });
   }
 
   return (
@@ -76,8 +99,7 @@ export function AddBookDialog() {
                   &ldquo;{title}&rdquo; added
                 </h3>
                 <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                  This is a preview of the Add Book flow. Connect a database
-                  to permanently save books to your library.
+                  Saved to your library for real.
                 </p>
                 <button
                   onClick={close}
@@ -91,9 +113,8 @@ export function AddBookDialog() {
                 <h3 className="font-display mb-1 text-xl text-foreground">
                   Add a Book
                 </h3>
-                <p className="mb-5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Sparkles className="size-3.5 text-gold" />
-                  Preview only — no database is connected yet
+                <p className="mb-5 text-xs text-muted-foreground">
+                  Saved directly to your library.
                 </p>
 
                 <div className="space-y-4">
@@ -128,7 +149,11 @@ export function AddBookDialog() {
                       <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                         Genre
                       </label>
-                      <select className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none">
+                      <select
+                        value={genre}
+                        onChange={(e) => setGenre(e.target.value)}
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                      >
                         {GENRE_OPTIONS.map((g) => (
                           <option key={g}>{g}</option>
                         ))}
@@ -138,7 +163,11 @@ export function AddBookDialog() {
                       <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                         Format
                       </label>
-                      <select className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none">
+                      <select
+                        value={format}
+                        onChange={(e) => setFormat(e.target.value)}
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                      >
                         {FORMAT_OPTIONS.map((f) => (
                           <option key={f}>{f}</option>
                         ))}
@@ -150,13 +179,24 @@ export function AddBookDialog() {
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       Reading status
                     </label>
-                    <select className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none">
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    >
                       {STATUS_OPTIONS.map((s) => (
                         <option key={s}>{s}</option>
                       ))}
                     </select>
                   </div>
                 </div>
+
+                {error && (
+                  <p className="mt-4 flex items-center gap-1.5 text-xs text-rose-400">
+                    <AlertCircle className="size-3.5" />
+                    {error}
+                  </p>
+                )}
 
                 <div className="mt-6 flex justify-end gap-3">
                   <button
@@ -168,9 +208,10 @@ export function AddBookDialog() {
                   </button>
                   <button
                     type="submit"
-                    className="h-9 rounded-full bg-gold px-5 text-sm font-medium text-gold-foreground"
+                    disabled={isPending}
+                    className="h-9 rounded-full bg-gold px-5 text-sm font-medium text-gold-foreground disabled:opacity-60"
                   >
-                    Add Book
+                    {isPending ? "Adding…" : "Add Book"}
                   </button>
                 </div>
               </form>
