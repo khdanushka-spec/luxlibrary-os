@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { BookFormat, ReadingStatus } from "@/generated/prisma";
+import type { BookCondition, BookFormat, ReadingStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
+import { isUniqueConstraintError } from "@/lib/prisma-errors";
 
 export type BookFormInput = {
   title: string;
@@ -17,20 +18,19 @@ export type BookFormInput = {
   purchasePrice?: number | null;
   series?: string;
   seriesVolume?: number | null;
+  condition?: string;
+  language?: string;
+  personalReview?: string;
+  personalNotes?: string;
+  purchaseDate?: string;
+  purchaseSeller?: string;
+  currentMarketValue?: number | null;
+  insuranceValue?: number | null;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
 
-function isUniqueConstraintError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
-
-async function resolvePublisherId(publisher: string | undefined) {
+export async function resolvePublisherId(publisher: string | undefined) {
   const name = publisher?.trim();
   if (!name) return null;
   const record = await prisma.publisher.upsert({
@@ -41,7 +41,7 @@ async function resolvePublisherId(publisher: string | undefined) {
   return record.id;
 }
 
-async function resolveSeriesId(series: string | undefined) {
+export async function resolveSeriesId(series: string | undefined) {
   const name = series?.trim();
   if (!name) return null;
   const record = await prisma.series.upsert({
@@ -88,6 +88,14 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         purchasePrice: input.purchasePrice ?? undefined,
         seriesId: seriesId ?? undefined,
         volume: seriesId ? input.seriesVolume ?? undefined : undefined,
+        condition: (input.condition as BookCondition) || undefined,
+        language: input.language?.trim() || undefined,
+        personalReview: input.personalReview?.trim() || undefined,
+        personalNotes: input.personalNotes?.trim() || undefined,
+        purchaseDate: input.purchaseDate ? new Date(input.purchaseDate) : undefined,
+        purchaseSeller: input.purchaseSeller?.trim() || undefined,
+        currentMarketValue: input.currentMarketValue ?? undefined,
+        insuranceValue: input.insuranceValue ?? undefined,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
@@ -150,6 +158,14 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         purchasePrice: input.purchasePrice ?? null,
         seriesId,
         volume: seriesId ? input.seriesVolume ?? null : null,
+        condition: (input.condition as BookCondition) || null,
+        language: input.language?.trim() || null,
+        personalReview: input.personalReview?.trim() || null,
+        personalNotes: input.personalNotes?.trim() || null,
+        purchaseDate: input.purchaseDate ? new Date(input.purchaseDate) : null,
+        purchaseSeller: input.purchaseSeller?.trim() || null,
+        currentMarketValue: input.currentMarketValue ?? null,
+        insuranceValue: input.insuranceValue ?? null,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },

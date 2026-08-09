@@ -17,6 +17,14 @@ const GENRE_OPTIONS = [
 
 const FORMAT_OPTIONS = ["Hardcover", "Paperback", "Ebook", "Audiobook", "Leather"];
 const STATUS_OPTIONS = ["Wishlist", "Unread", "Reading", "Completed", "DNF"];
+const CONDITION_OPTIONS = [
+  { label: "New", value: "NEW" },
+  { label: "Like New", value: "LIKE_NEW" },
+  { label: "Very Good", value: "VERY_GOOD" },
+  { label: "Good", value: "GOOD" },
+  { label: "Fair", value: "FAIR" },
+  { label: "Poor", value: "POOR" },
+];
 
 export function AddBookDialog() {
   const router = useRouter();
@@ -37,6 +45,8 @@ export function AddBookDialog() {
   const [purchasePrice, setPurchasePrice] = useState("");
   const [series, setSeries] = useState("");
   const [seriesVolume, setSeriesVolume] = useState("");
+  const [condition, setCondition] = useState("");
+  const [language, setLanguage] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -63,6 +73,8 @@ export function AddBookDialog() {
     setPurchasePrice("");
     setSeries("");
     setSeriesVolume("");
+    setCondition("");
+    setLanguage("");
   }
 
   function handleSubmit(e: FormEvent) {
@@ -84,6 +96,8 @@ export function AddBookDialog() {
         purchasePrice: purchasePrice ? Number(purchasePrice) : null,
         series: series.trim() || undefined,
         seriesVolume: seriesVolume ? Number(seriesVolume) : null,
+        condition: condition || undefined,
+        language: language.trim() || undefined,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -304,6 +318,37 @@ export function AddBookDialog() {
                         value={seriesVolume}
                         onChange={(e) => setSeriesVolume(e.target.value)}
                         placeholder="1"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Condition
+                      </label>
+                      <select
+                        value={condition}
+                        onChange={(e) => setCondition(e.target.value)}
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                      >
+                        <option value="">Unspecified</option>
+                        {CONDITION_OPTIONS.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Language
+                      </label>
+                      <input
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        placeholder="English"
                         className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                       />
                     </div>

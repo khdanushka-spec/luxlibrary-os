@@ -59,6 +59,14 @@ export default async function BookDetailPage({
             purchasePrice={detail.purchasePrice}
             series={book.series}
             seriesVolume={book.seriesVolume}
+            condition={detail.rawCondition}
+            language={detail.rawLanguage}
+            personalReview={detail.personalReview}
+            personalNotes={detail.personalNotes}
+            purchaseDate={detail.purchaseDate}
+            purchaseSeller={detail.purchaseSeller}
+            currentMarketValue={detail.currentMarketValue}
+            insuranceValue={detail.insuranceValue}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -158,6 +166,24 @@ export default async function BookDetailPage({
           </div>
         )}
 
+        {detail.personalReview && (
+          <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
+            <h3 className="mb-3 text-sm font-medium text-foreground">Your Review</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {detail.personalReview}
+            </p>
+          </div>
+        )}
+
+        {detail.personalNotes && (
+          <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
+            <h3 className="mb-3 text-sm font-medium text-foreground">Personal Notes</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {detail.personalNotes}
+            </p>
+          </div>
+        )}
+
         <div className="rounded-2xl border border-border/70 bg-card/60 p-6">
           <h3 className="mb-4 text-sm font-medium text-foreground">Details</h3>
           <dl className="space-y-2.5 text-sm">
@@ -173,6 +199,26 @@ export default async function BookDetailPage({
               [
                 "Purchase price",
                 detail.purchasePrice ? `$${detail.purchasePrice.toFixed(2)}` : undefined,
+              ],
+              [
+                "Purchased",
+                detail.purchaseDate
+                  ? new Date(detail.purchaseDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }) + (detail.purchaseSeller ? ` from ${detail.purchaseSeller}` : "")
+                  : detail.purchaseSeller
+                    ? `From ${detail.purchaseSeller}`
+                    : undefined,
+              ],
+              [
+                "Market value",
+                detail.currentMarketValue ? `$${detail.currentMarketValue.toFixed(2)}` : undefined,
+              ],
+              [
+                "Insured value",
+                detail.insuranceValue ? `$${detail.insuranceValue.toFixed(2)}` : undefined,
               ],
             ]
               .filter(([, value]) => value)

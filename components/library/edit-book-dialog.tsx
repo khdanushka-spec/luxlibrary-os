@@ -24,6 +24,14 @@ const STATUS_OPTIONS: { label: string; value: BookStatus }[] = [
   { label: "Completed", value: "completed" },
   { label: "DNF", value: "dnf" },
 ];
+const CONDITION_OPTIONS = [
+  { label: "New", value: "NEW" },
+  { label: "Like New", value: "LIKE_NEW" },
+  { label: "Very Good", value: "VERY_GOOD" },
+  { label: "Good", value: "GOOD" },
+  { label: "Fair", value: "FAIR" },
+  { label: "Poor", value: "POOR" },
+];
 
 type EditBookDialogProps = {
   id: string;
@@ -40,6 +48,14 @@ type EditBookDialogProps = {
   purchasePrice?: number;
   series?: string;
   seriesVolume?: number;
+  condition?: string;
+  language?: string;
+  personalReview?: string;
+  personalNotes?: string;
+  purchaseDate?: string;
+  purchaseSeller?: string;
+  currentMarketValue?: number;
+  insuranceValue?: number;
 };
 
 export function EditBookDialog({
@@ -57,6 +73,14 @@ export function EditBookDialog({
   purchasePrice: initialPurchasePrice,
   series: initialSeries,
   seriesVolume: initialSeriesVolume,
+  condition: initialCondition,
+  language: initialLanguage,
+  personalReview: initialPersonalReview,
+  personalNotes: initialPersonalNotes,
+  purchaseDate: initialPurchaseDate,
+  purchaseSeller: initialPurchaseSeller,
+  currentMarketValue: initialCurrentMarketValue,
+  insuranceValue: initialInsuranceValue,
 }: EditBookDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -79,6 +103,18 @@ export function EditBookDialog({
   const [series, setSeries] = useState(initialSeries ?? "");
   const [seriesVolume, setSeriesVolume] = useState(
     initialSeriesVolume ? String(initialSeriesVolume) : ""
+  );
+  const [condition, setCondition] = useState(initialCondition ?? "");
+  const [language, setLanguage] = useState(initialLanguage ?? "");
+  const [personalReview, setPersonalReview] = useState(initialPersonalReview ?? "");
+  const [personalNotes, setPersonalNotes] = useState(initialPersonalNotes ?? "");
+  const [purchaseDate, setPurchaseDate] = useState(initialPurchaseDate ?? "");
+  const [purchaseSeller, setPurchaseSeller] = useState(initialPurchaseSeller ?? "");
+  const [currentMarketValue, setCurrentMarketValue] = useState(
+    initialCurrentMarketValue ? String(initialCurrentMarketValue) : ""
+  );
+  const [insuranceValue, setInsuranceValue] = useState(
+    initialInsuranceValue ? String(initialInsuranceValue) : ""
   );
 
   useEffect(() => {
@@ -110,6 +146,14 @@ export function EditBookDialog({
         purchasePrice: purchasePrice ? Number(purchasePrice) : null,
         series: series.trim() || undefined,
         seriesVolume: seriesVolume ? Number(seriesVolume) : null,
+        condition: condition || undefined,
+        language: language.trim() || undefined,
+        personalReview: personalReview.trim() || undefined,
+        personalNotes: personalNotes.trim() || undefined,
+        purchaseDate: purchaseDate || undefined,
+        purchaseSeller: purchaseSeller.trim() || undefined,
+        currentMarketValue: currentMarketValue ? Number(currentMarketValue) : null,
+        insuranceValue: insuranceValue ? Number(insuranceValue) : null,
       });
       if (result.ok) {
         setOpen(false);
@@ -325,6 +369,115 @@ export function EditBookDialog({
                       className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Condition
+                    </label>
+                    <select
+                      value={condition}
+                      onChange={(e) => setCondition(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    >
+                      <option value="">Unspecified</option>
+                      {CONDITION_OPTIONS.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Language
+                    </label>
+                    <input
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      placeholder="English"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Purchase date
+                    </label>
+                    <input
+                      type="date"
+                      value={purchaseDate}
+                      onChange={(e) => setPurchaseDate(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Purchased from
+                    </label>
+                    <input
+                      value={purchaseSeller}
+                      onChange={(e) => setPurchaseSeller(e.target.value)}
+                      placeholder="Powell's Books"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Current market value
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={currentMarketValue}
+                      onChange={(e) => setCurrentMarketValue(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Insurance value
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={insuranceValue}
+                      onChange={(e) => setInsuranceValue(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Your review
+                  </label>
+                  <textarea
+                    value={personalReview}
+                    onChange={(e) => setPersonalReview(e.target.value)}
+                    rows={2}
+                    placeholder="What did you think?"
+                    className="w-full resize-none rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Personal notes
+                  </label>
+                  <textarea
+                    value={personalNotes}
+                    onChange={(e) => setPersonalNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Edition details, where you found it, anything else worth remembering"
+                    className="w-full resize-none rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
                 </div>
               </div>
 
