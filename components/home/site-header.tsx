@@ -58,7 +58,7 @@ export function SiteHeader() {
             Sign in
           </a>
           <Button
-            render={<a href="#cta" />}
+            render={<a href="/dashboard" />}
             nativeButton={false}
             className="h-9 rounded-full bg-gold px-4 text-[0.85rem] font-medium text-gold-foreground hover:bg-gold/90"
           >

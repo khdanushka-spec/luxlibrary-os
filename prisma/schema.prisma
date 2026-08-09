@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BookFormat {
+  HARDCOVER
+  PAPERBACK
+  LEATHER
+  EBOOK
+  AUDIOBOOK
+}
+
+enum BookCondition {
+  NEW
+  LIKE_NEW
+  VERY_GOOD
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ReadingStatus {
+  WISHLIST
+  UNREAD
+  READING
+  COMPLETED
+  DNF
+}
+
+enum ContributorRole {
+  AUTHOR
+  TRANSLATOR
+  ILLUSTRATOR
+  EDITOR
+}
+
+model Book {
+  id                      String        @id @default(cuid())
+  title                   String
+  subtitle                String?
+  seriesId                String?
+  series                  Series?       @relation(fields: [seriesId], references: [id])
+  volume                  Int?
+  publisherId             String?
+  publisher               Publisher?    @relation(fields: [publisherId], references: [id])
+  publicationYear         Int?
+  originalPublicationYear Int?
+  isbn10                  String?
+  isbn13                  String?       @unique
+  language                String?
+  country                 String?
+  pages                   Int?
+  weightGrams             Int?
+  widthMm                 Int?
+  heightMm                Int?
+  depthMm                 Int?
+  format                  BookFormat    @default(HARDCOVER)
+  isSigned                Boolean       @default(false)
+  isFirstEdition          Boolean       @default(false)
+  isLimitedEdition        Boolean       @default(false)
+  condition               BookCondition?
+
+  coverImageUrl     String?
+  backCoverImageUrl String?
+  spineImageUrl     String?
+  galleryImageUrls  String[]          @default([])
+
+  purchaseDate        DateTime?
+  purchaseSeller      String?
+  purchaseInvoiceUrl  String?
+  purchasePrice       Decimal?        @db.Decimal(10, 2)
+  currentMarketValue  Decimal?        @db.Decimal(10, 2)
+  insuranceValue      Decimal?        @db.Decimal(10, 2)
+
+  shelfId       String?
+  shelf         Shelf?  @relation(fields: [shelfId], references: [id])
+  shelfPosition Int?
+  qrCode        String? @unique
+
+  summary          String? @db.Text
+  aiSummary        String? @db.Text
+  personalReview   String? @db.Text
+  personalNotes    String? @db.Text
+
+  readingStatus          ReadingStatus @default(UNREAD)
+  readingProgressPercent Int           @default(0)
+  rating                 Int?
+  isFavorite             Boolean       @default(false)
+  isRare                 Boolean       @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contributors    BookContributor[]
+  genres          BookGenre[]
+  tags            BookTag[]
+  quotes          Quote[]
+  notes           Note[]
+  readingSessions ReadingSession[]
+
+  @@index([readingStatus])
+  @@index([shelfId])
+}
+
+model Author {
+  id        String            @id @default(cuid())
+  name      String            @unique
+  bio       String?           @db.Text
+  birthYear Int?
+  deathYear Int?
+  photoUrl  String?
+  createdAt DateTime          @default(now())
+
+  books BookContributor[]
+}
+
+model BookContributor {
+  bookId   String
+  book     Book            @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  authorId String
+  author   Author          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  role     ContributorRole @default(AUTHOR)
+
+  @@id([bookId, authorId, role])
+}
+
+model Publisher {
+  id    String @id @default(cuid())
+  name  String @unique
+  books Book[]
+}
+
+model Series {
+  id    String @id @default(cuid())
+  name  String @unique
+  books Book[]
+}
+
+model Genre {
+  id    String      @id @default(cuid())
+  name  String      @unique
+  books BookGenre[]
+}
+
+model BookGenre {
+  bookId  String
+  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  genreId String
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, genreId])
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  books BookTag[]
+}
+
+model BookTag {
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+}
+
+model Shelf {
+  id        String   @id @default(cuid())
+  label     String
+  room      String?
+  capacity  Int?
+  createdAt DateTime @default(now())
+
+  books Book[]
+}
+
+model Quote {
+  id         String   @id @default(cuid())
+  bookId     String
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  text       String   @db.Text
+  pageNumber Int?
+  createdAt  DateTime @default(now())
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  bookId    String?
+  book      Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  title     String?
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReadingSession {
+  id         String    @id @default(cuid())
+  bookId     String
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  minutesRead Int?
+  pagesRead  Int?
+}

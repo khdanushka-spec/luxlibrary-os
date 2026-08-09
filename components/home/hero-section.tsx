@@ -54,7 +54,7 @@ export function HeroSection() {
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
         >
           <a
-            href="#cta"
+            href="/dashboard"
             className="group inline-flex h-12 items-center gap-2 rounded-full bg-gold px-7 text-[0.95rem] font-medium text-gold-foreground shadow-[0_0_0_1px_rgba(212,166,87,0.3),0_8px_30px_-8px_rgba(212,166,87,0.55)] transition-transform hover:scale-[1.02] active:scale-[0.99]"
           >
             Enter your library

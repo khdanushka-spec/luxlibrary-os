@@ -1,0 +1,26 @@
+import { Plus, Search } from "lucide-react";
+
+export function AppTopbar() {
+  return (
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border/60 bg-background/80 px-6 py-3.5 backdrop-blur-xl">
+      <div className="relative w-full max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search your library..."
+          className="h-9 w-full rounded-full border border-border/70 bg-secondary/40 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button className="inline-flex h-9 items-center gap-1.5 rounded-full bg-gold px-4 text-sm font-medium text-gold-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <Plus className="size-4" />
+          Add Book
+        </button>
+        <div className="flex size-9 items-center justify-center rounded-full bg-secondary text-sm font-medium text-foreground">
+          D
+        </div>
+      </div>
+    </header>
+  );
+}
