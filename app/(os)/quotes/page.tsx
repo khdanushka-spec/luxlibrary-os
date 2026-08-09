@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { Quote as QuoteIcon } from "lucide-react";
-import { getBookDetail } from "@/lib/book-detail";
-import { MOCK_BOOKS } from "@/lib/mock-data";
+import { getQuotesFromDb } from "@/lib/db-books";
 
 export const metadata = {
   title: "Quotes — LuxLibrary OS",
 };
 
-export default function QuotesPage() {
-  const quotes = MOCK_BOOKS.map((book) => ({
-    book,
-    detail: getBookDetail(book),
-  })).filter((entry) => entry.detail.favoriteQuote);
+export const dynamic = "force-dynamic";
+
+export default async function QuotesPage() {
+  const quotes = await getQuotesFromDb();
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,14 +29,14 @@ export default function QuotesPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {quotes.map(({ book, detail }) => (
+          {quotes.map(({ book, favoriteQuote }) => (
             <Link
               key={book.id}
               href={`/library/${book.id}`}
               className="rounded-2xl border border-gold/20 bg-gold/[0.05] p-6 transition-colors hover:border-gold/40"
             >
               <p className="font-display text-lg italic leading-relaxed text-foreground">
-                {detail.favoriteQuote}
+                {favoriteQuote}
               </p>
               <p className="mt-4 text-sm text-muted-foreground">
                 — {book.title}, {book.author}

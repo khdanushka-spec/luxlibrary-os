@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Search as SearchIcon, User as UserIcon } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
-import { getBookDetail } from "@/lib/book-detail";
-import { MOCK_BOOKS } from "@/lib/mock-data";
+import { getAllBooksFromDb, searchQuotesFromDb } from "@/lib/db-books";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   searchParams,
@@ -36,7 +37,9 @@ export default async function SearchPage({
     );
   }
 
-  const matchingBooks = MOCK_BOOKS.filter(
+  const allBooks = await getAllBooksFromDb();
+
+  const matchingBooks = allBooks.filter(
     (b) =>
       b.title.toLowerCase().includes(query) ||
       b.author.toLowerCase().includes(query) ||
@@ -45,16 +48,13 @@ export default async function SearchPage({
 
   const matchingAuthors = Array.from(
     new Map(
-      MOCK_BOOKS.filter((b) => b.author.toLowerCase().includes(query)).map(
-        (b) => [b.author, b.author]
-      )
+      allBooks
+        .filter((b) => b.author.toLowerCase().includes(query))
+        .map((b) => [b.author, b.author])
     ).values()
   );
 
-  const matchingQuotes = MOCK_BOOKS.map((book) => ({
-    book,
-    detail: getBookDetail(book),
-  })).filter((entry) => entry.detail.favoriteQuote?.toLowerCase().includes(query));
+  const matchingQuotes = await searchQuotesFromDb(query);
 
   const totalResults =
     matchingBooks.length + matchingAuthors.length + matchingQuotes.length;
@@ -118,14 +118,14 @@ export default async function SearchPage({
                 Quotes ({matchingQuotes.length})
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                {matchingQuotes.map(({ book, detail }) => (
+                {matchingQuotes.map(({ book, favoriteQuote }) => (
                   <Link
                     key={book.id}
                     href={`/library/${book.id}`}
                     className="rounded-2xl border border-gold/20 bg-gold/[0.05] p-6 transition-colors hover:border-gold/40"
                   >
                     <p className="font-display text-lg italic leading-relaxed text-foreground">
-                      {detail.favoriteQuote}
+                      {favoriteQuote}
                     </p>
                     <p className="mt-4 text-sm text-muted-foreground">
                       — {book.title}, {book.author}

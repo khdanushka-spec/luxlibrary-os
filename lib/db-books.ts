@@ -44,6 +44,26 @@ export async function getAllBooksFromDb(): Promise<MockBook[]> {
   return books.map(toMockBook);
 }
 
+export async function getQuotesFromDb(): Promise<
+  { book: MockBook; favoriteQuote: string }[]
+> {
+  const quotes = await prisma.quote.findMany({
+    include: { book: { include: bookInclude } },
+    orderBy: { createdAt: "desc" },
+  });
+  return quotes.map((q) => ({ book: toMockBook(q.book), favoriteQuote: q.text }));
+}
+
+export async function searchQuotesFromDb(
+  query: string
+): Promise<{ book: MockBook; favoriteQuote: string }[]> {
+  const quotes = await prisma.quote.findMany({
+    where: { text: { contains: query, mode: "insensitive" } },
+    include: { book: { include: bookInclude } },
+  });
+  return quotes.map((q) => ({ book: toMockBook(q.book), favoriteQuote: q.text }));
+}
+
 export async function getBookDetailFromDb(id: string) {
   const book = await prisma.book.findUnique({
     where: { id },
