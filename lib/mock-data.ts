@@ -10,7 +10,7 @@ export const MOCK_READING_CHALLENGE = {
   year: 2026,
 };
 
-export const COVER_GRADIENTS = [
+const COVER_GRADIENTS = [
   "from-violet-500/60 to-rose-500/40",
   "from-sky-500/60 to-emerald-500/40",
   "from-rose-400/60 to-orange-400/40",
