@@ -30,7 +30,7 @@ const QUOTE_TEMPLATES = [
   "This is the book I keep pressing into other people's hands.",
 ];
 
-function hashCode(input: string) {
+export function hashCode(input: string) {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
     hash = (hash << 5) - hash + input.charCodeAt(i);
