@@ -50,7 +50,7 @@ export function CsvImportView() {
       try {
         const res = await bulkImportBooks(csvText);
         setResult(res);
-        if (res.imported > 0) router.refresh();
+        if (res.created > 0 || res.updated > 0) router.refresh();
       } catch {
         setError("Something went wrong importing this file.");
       }
@@ -73,7 +73,9 @@ export function CsvImportView() {
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Bulk-add books from a CSV file. Only <code>title</code> and{" "}
-          <code>author</code> are required.
+          <code>author</code> are required. A row whose <code>isbn13</code>{" "}
+          matches a book you already own updates it instead of creating a
+          duplicate.
         </p>
       </div>
 
@@ -143,7 +145,17 @@ export function CsvImportView() {
         <div className="rounded-2xl border border-border/70 bg-card/60 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <CheckCircle2 className="size-4 text-gold" />
-            Imported {result.imported} book{result.imported === 1 ? "" : "s"}.
+            {result.created > 0 && (
+              <span>
+                Added {result.created} book{result.created === 1 ? "" : "s"}.
+              </span>
+            )}
+            {result.updated > 0 && (
+              <span>
+                Updated {result.updated} book{result.updated === 1 ? "" : "s"}.
+              </span>
+            )}
+            {result.created === 0 && result.updated === 0 && <span>Nothing imported.</span>}
           </div>
           {result.skipped.length > 0 && (
             <div className="mt-4">
