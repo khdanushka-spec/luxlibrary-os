@@ -56,6 +56,7 @@ type EditBookDialogProps = {
   purchaseSeller?: string;
   currentMarketValue?: number;
   insuranceValue?: number;
+  readingProgressPercent?: number;
 };
 
 export function EditBookDialog({
@@ -81,6 +82,7 @@ export function EditBookDialog({
   purchaseSeller: initialPurchaseSeller,
   currentMarketValue: initialCurrentMarketValue,
   insuranceValue: initialInsuranceValue,
+  readingProgressPercent: initialReadingProgressPercent,
 }: EditBookDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -115,6 +117,9 @@ export function EditBookDialog({
   );
   const [insuranceValue, setInsuranceValue] = useState(
     initialInsuranceValue ? String(initialInsuranceValue) : ""
+  );
+  const [readingProgressPercent, setReadingProgressPercent] = useState(
+    initialReadingProgressPercent ? String(initialReadingProgressPercent) : ""
   );
 
   useEffect(() => {
@@ -154,6 +159,7 @@ export function EditBookDialog({
         purchaseSeller: purchaseSeller.trim() || undefined,
         currentMarketValue: currentMarketValue ? Number(currentMarketValue) : null,
         insuranceValue: insuranceValue ? Number(insuranceValue) : null,
+        readingProgressPercent: readingProgressPercent ? Number(readingProgressPercent) : null,
       });
       if (result.ok) {
         setOpen(false);
@@ -283,6 +289,22 @@ export function EditBookDialog({
                     </select>
                   </div>
                 </div>
+
+                {status === "reading" && (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Progress ({readingProgressPercent || 0}%)
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={readingProgressPercent || 0}
+                      onChange={(e) => setReadingProgressPercent(e.target.value)}
+                      className="w-full accent-gold"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">

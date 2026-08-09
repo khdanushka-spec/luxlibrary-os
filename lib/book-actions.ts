@@ -26,6 +26,7 @@ export type BookFormInput = {
   purchaseSeller?: string;
   currentMarketValue?: number | null;
   insuranceValue?: number | null;
+  readingProgressPercent?: number | null;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -75,12 +76,16 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
     resolveSeriesId(input.series),
   ]);
 
+  const readingStatus = input.status.toUpperCase() as ReadingStatus;
+
   try {
     const book = await prisma.book.create({
       data: {
         title,
         format: input.format.toUpperCase() as BookFormat,
-        readingStatus: input.status.toUpperCase() as ReadingStatus,
+        readingStatus,
+        readingProgressPercent:
+          readingStatus === "COMPLETED" ? 100 : input.readingProgressPercent ?? undefined,
         publisherId: publisherId ?? undefined,
         isbn13: input.isbn13?.trim() || undefined,
         pages: input.pages ?? undefined,
@@ -104,6 +109,10 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         },
       },
     });
+
+    if (readingStatus === "READING") {
+      await prisma.readingSession.create({ data: { bookId: book.id } });
+    }
 
     revalidatePath("/", "layout");
     return { ok: true, id: book.id };
@@ -140,6 +149,13 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     resolveSeriesId(input.series),
   ]);
 
+  const existing = await prisma.book.findUnique({
+    where: { id },
+    select: { readingStatus: true },
+  });
+  const previousStatus = existing?.readingStatus;
+  const readingStatus = input.status.toUpperCase() as ReadingStatus;
+
   await prisma.bookContributor.deleteMany({ where: { bookId: id } });
   await prisma.bookGenre.deleteMany({ where: { bookId: id } });
 
@@ -149,7 +165,9 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
       data: {
         title,
         format: input.format.toUpperCase() as BookFormat,
-        readingStatus: input.status.toUpperCase() as ReadingStatus,
+        readingStatus,
+        readingProgressPercent:
+          readingStatus === "COMPLETED" ? 100 : input.readingProgressPercent ?? undefined,
         rating: input.rating,
         publisherId,
         isbn13: input.isbn13?.trim() || null,
@@ -174,6 +192,15 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         },
       },
     });
+
+    if (previousStatus !== "READING" && readingStatus === "READING") {
+      await prisma.readingSession.create({ data: { bookId: id } });
+    } else if (previousStatus === "READING" && readingStatus !== "READING") {
+      await prisma.readingSession.updateMany({
+        where: { bookId: id, endedAt: null },
+        data: { endedAt: new Date() },
+      });
+    }
 
     revalidatePath("/", "layout");
     return { ok: true, id };

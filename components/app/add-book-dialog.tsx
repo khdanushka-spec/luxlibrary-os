@@ -47,6 +47,7 @@ export function AddBookDialog() {
   const [seriesVolume, setSeriesVolume] = useState("");
   const [condition, setCondition] = useState("");
   const [language, setLanguage] = useState("");
+  const [readingProgressPercent, setReadingProgressPercent] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -75,6 +76,7 @@ export function AddBookDialog() {
     setSeriesVolume("");
     setCondition("");
     setLanguage("");
+    setReadingProgressPercent("");
   }
 
   function handleSubmit(e: FormEvent) {
@@ -98,6 +100,7 @@ export function AddBookDialog() {
         seriesVolume: seriesVolume ? Number(seriesVolume) : null,
         condition: condition || undefined,
         language: language.trim() || undefined,
+        readingProgressPercent: readingProgressPercent ? Number(readingProgressPercent) : null,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -230,6 +233,22 @@ export function AddBookDialog() {
                       ))}
                     </select>
                   </div>
+
+                  {status === "Reading" && (
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Progress ({readingProgressPercent || 0}%)
+                      </label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={readingProgressPercent || 0}
+                        onChange={(e) => setReadingProgressPercent(e.target.value)}
+                        className="mt-2 w-full accent-gold"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">

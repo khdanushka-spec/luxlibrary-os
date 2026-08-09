@@ -19,11 +19,13 @@ const bookInclude = {
   publisher: true,
   series: true,
   shelf: true,
+  readingSessions: { orderBy: { startedAt: "desc" as const }, take: 1 },
 } as const;
 
 type DbBook = Awaited<ReturnType<typeof prisma.book.findFirstOrThrow<{ include: typeof bookInclude }>>>;
 
 function toMockBook(book: DbBook): MockBook {
+  const latestSession = book.readingSessions[0];
   return {
     id: book.id,
     title: book.title,
@@ -37,6 +39,10 @@ function toMockBook(book: DbBook): MockBook {
     series: book.series?.name,
     seriesVolume: book.volume ?? undefined,
     publisher: book.publisher?.name,
+    readingProgressPercent: book.readingProgressPercent > 0 ? book.readingProgressPercent : undefined,
+    readingStartedAt:
+      latestSession && !latestSession.endedAt ? latestSession.startedAt.toISOString() : undefined,
+    completedAt: latestSession?.endedAt ? latestSession.endedAt.toISOString() : undefined,
   };
 }
 

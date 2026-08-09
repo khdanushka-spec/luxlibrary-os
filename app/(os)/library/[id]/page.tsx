@@ -67,6 +67,7 @@ export default async function BookDetailPage({
             purchaseSeller={detail.purchaseSeller}
             currentMarketValue={detail.currentMarketValue}
             insuranceValue={detail.insuranceValue}
+            readingProgressPercent={book.readingProgressPercent}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -126,6 +127,21 @@ export default async function BookDetailPage({
             Shelf {detail.shelf}
             {detail.shelfPosition ? `, position ${detail.shelfPosition}` : ""}
           </div>
+
+          {book.status === "reading" && book.readingProgressPercent !== undefined && (
+            <div className="mt-5 max-w-xs">
+              <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Reading progress</span>
+                <span>{book.readingProgressPercent}%</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-gold"
+                  style={{ width: `${book.readingProgressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
