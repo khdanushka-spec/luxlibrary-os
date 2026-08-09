@@ -1,109 +1,52 @@
-# LuxLibrary OS — Handover
+# Handover — 2026-08-09 20:15
 
-**Status (2026-08-09):** Home / marketing page built, verified, pushed to GitHub, and deployed to Vercel production. Nothing else from the full spec is implemented yet.
+## Goal
+Dhanu asked to build "LuxLibrary OS" — a premium personal-library operating system for a 2,000+ book collector, from an extensive spec (11-phase build: dashboard, catalog, AI librarian, collections, analytics, reading tracker, etc.). Work proceeded: marketing home page first, then "the Operation site" (the actual app), then iteratively via bare "next" / "next 5" prompts to build out the full IA one module (or batch) at a time, then "confirm and do it" to provision a real database and migrate pages off mock data one at a time.
 
-## Repo & deployment
-- GitHub: https://github.com/khdanushka-spec/luxlibrary-os (public, under the `khdanushka-spec` account — not `dhanu-af`)
-- Vercel: project `dkns/luxlibrary-os`, prod at **https://luxlibrary-os.vercel.app**, connected to the GitHub repo for auto-deploy on push to `master`
-- Local git identity for this repo only: `Dhanushka` / `khdanushka@gmail.com` (matches `nutriai`'s local config, not global)
-- **Gotcha:** this machine's `gh` CLI has two cached accounts (`dhanu-af`, `khdanushka-spec`) and only one is active at a time. Before pushing, run `gh auth status` to confirm the active account matches the repo owner, `gh auth switch --hostname github.com --user <name>` if not.
+## State
+- Marketing site (`/`) and the full app shell (sidebar covering every IA section, topbar with search + Add Book) are built and deployed.
+- **20 screens exist.** Only **Profile** is still unbuilt (falls through to the generic `app/(os)/[section]/page.tsx` "not built yet" page).
+- **A real Neon Postgres database is live and seeded**: 28 books, 18 authors, 8 publishers, 7 genres, 2 series, 7 shelves, 6 notes, 13 quotes — the same content the mock data always showed, now persisted for real.
+- **Wired to the real database**: Library, Book Detail, Wishlist, Authors, Genres, Publishers (+detail), Series (+detail), Collections (+detail), Quotes, Search, AI Librarian.
+- **Still on mock data** (`lib/mock-data.ts`'s `MOCK_BOOKS`, not the database): Dashboard, Analytics, Reading Life, Timeline, Notes. None of these use the risky hash-derived shortcut described in Gotchas *except* Analytics (see Next steps) — the rest should be routine swaps.
+- No auth (single-owner app, deliberately not built).
+- Add Book is a fully built, validated form that explicitly does **not** persist yet (shows a "preview only" message on submit).
+- No book edit/delete, no CSV/import pipeline, no real LLM behind AI Librarian (rule-based pattern matching over real data, clearly labeled as such in the UI, not hidden as if it were a live model).
+- Production: **https://luxlibrary-os.vercel.app** — Vercel project `dkns/luxlibrary-os`, auto-deploys on push to `master`. GitHub: `khdanushka-spec/luxlibrary-os` (public).
 
-## Stack
-- Next.js 16 (App Router, Turbopack), TypeScript, Tailwind v4
-- shadcn/ui — built on **Base UI**, not Radix. Components take a `render` prop instead of `asChild` (e.g. `<Button render={<a href="/x" />}>`), and if the rendered element isn't a real `<button>`, pass `nativeButton={false}` or Base UI logs a console error.
-- `motion` (import from `motion/react`, not `framer-motion`)
-- `lucide-react` icons
-- Dev server: `npm run dev` inside this folder, or via the shared launcher entry `luxlibrary-os` (port 3013) in `C:\Users\dnand\.claude\launch.json`.
+## Key decisions
+- **Mock data first, database later, page by page.** Every module was built against a shared `lib/mock-data.ts` dataset before any database existed, then migrated to Prisma incrementally (Library+Detail together, then 6 aggregation pages, then Quotes+Search, then AI Librarian) rather than provisioning a DB up front or converting everything at once. Every intermediate state stayed shippable, and each migration step was verified against numbers already known from the mock-data era — a real bug (see Gotchas) was caught this way.
+- **Migrating a page to the database means adapting Prisma rows into the existing `MockBook` shape** (`lib/db-books.ts`'s `toMockBook()`), not rewriting consuming components — `BookCard`, `BookListRow`, `LibraryView`, etc. never changed; only what a page fetched from did.
+- **Library and Book Detail were migrated together, not one at a time**, because they're linked by id — wiring one to real DB ids while the other still looked up the old mock "1".."28" ids would have made every click-through 404.
+- **shadcn/ui here is built on Base UI, not Radix.** Components take a `render` prop instead of `asChild` (e.g. `<Button render={<a href="/x" />}>`), and a non-`<button>` render target needs `nativeButton={false}` or Base UI logs a console error.
+- **Prisma 7 moved connection config out of `schema.prisma`** into `prisma.config.ts`, and `PrismaClient` now requires an explicit driver `adapter` (`@prisma/adapter-neon` here) — a real API break from what most training data assumes. `prisma.config.ts` reads `process.env.DATABASE_URL` directly, not the throwing `env()` helper, so `prisma generate` survives a build before any database exists.
 
-## What's built
-`app/page.tsx` composes sections from `components/home/`:
-hero, principles marquee, stats, feature grid, library map showcase, AI librarian chat mockup, reading/analytics showcase, quote, final CTA, footer. Theme: warm dark "gilded library" palette (gold accent), Fraunces serif for headlines + Geist Sans for UI, tokens in `app/globals.css`.
+## Files touched
+From-scratch build — essentially all of `app/`, `components/`, `lib/`, `prisma/` are new. The load-bearing files for continuing the database migration:
+- `lib/mock-data.ts` — `MOCK_BOOKS` and the `MockBook` type. Source of truth for anything not yet migrated, and the seed data for everything that is.
+- `lib/db-books.ts` — every DB read function (`getAllBooksFromDb`, `getBookDetailFromDb`, `getQuotesFromDb`, `searchQuotesFromDb`, `getLibrarianBooksFromDb`) plus the `toMockBook()` adapter. Add new functions here for the remaining pages.
+- `lib/book-detail.ts` — `getBookDetail()`, the **hash-derived, mock-only** helper. Exports `hashCode` for reuse elsewhere. Never call this on a book that came from the database — see Gotchas.
+- `lib/analytics.ts`, `lib/reading.ts`, `lib/timeline.ts` — still read `MOCK_BOOKS` internally; next migration targets.
+- `prisma/schema.prisma` — full data model. `prisma/seed.ts` reuses `lib/mock-data.ts` / `lib/book-detail.ts` / `lib/mock-notes.ts` directly, so re-seeding (`npx prisma db seed`) always matches the mock dataset.
+- `app/(os)/ai/actions.ts` — the one Server Action in the app so far, needed because the AI chat is a client component and can't call Prisma directly. Follow this pattern for any future client-interactive feature needing DB access (e.g. making Add Book actually persist).
 
-## Known gap — Figma reference
-Dhanu supplied a Figma Make file (`figma.com/make/RRR4dvaXsgw2PAMdrolMG5`) as the visual reference. `get_design_context` fails: her Figma seat is **View-only**, which blocks the MCP from reading the file even though she owns it. The home page was built from her written design brief (Apple/Notion/Arc/Linear/Stripe-inspired) instead of the literal file. If she upgrades her seat to Editor (or duplicates the file into an editable plan), re-pull the design and reconcile spacing/colors/copy against it.
+## Gotchas / constraints learned
+- **The single biggest recurring bug class in this build**: `lib/book-detail.ts`'s `getBookDetail(book)` derives publisher/shelf/ISBN/summary/favorite-quote from a hash of `book.id`. Fine for `MOCK_BOOKS` (stable "1".."28" ids), **silently wrong** for a database book (a real cuid the hash was never seeded against). Publishers, Quotes, Search, and AI Librarian all hit this and needed a real fix — query the actually-stored field — not just a data-source swap. **`lib/analytics.ts` still calls `getBookDetail()` for `purchasePrice`** — fix this specifically when migrating Analytics, don't just swap `MOCK_BOOKS` for DB books.
+- **This machine's `gh` CLI has two cached GitHub accounts** (`dhanu-af`, `khdanushka-spec`), only one active at a time. Before any push here: `gh auth status` to check, `gh auth switch --hostname github.com --user khdanushka-spec` before pushing, then switch back to `dhanu-af` afterward so Dhanu's other projects on this machine aren't disrupted.
+- **Real outbound DB connections work fine from the Bash tool on this machine** — `prisma migrate dev` / `db seed` ran successfully against the live Neon database. (An older cross-project memory claiming otherwise was specific to a different context and has been corrected.)
+- **The Browser-pane preview tool can fail to visually show server-streamed Suspense content even when the server response is genuinely correct** — confirmed by `fetch()`ing a page directly and finding the right HTML sitting in a hidden `<div id="S:*">` that never got swapped into view (same root cause as a known "RAF never fires in this tool" limitation). If a page looks stuck/blank here despite clean server logs, `fetch()` it directly before assuming a real bug — and consider whether the `<Suspense>` boundary causing it is even still needed.
+- `npx vercel integration add neon --claim --environment production --environment preview --environment development` provisions a real Neon DB via the Vercel Marketplace, connects it to the project, and writes credentials to `.env.local` (gitignored) in one command.
+- Windows: stop the local dev server before running `prisma generate`/`migrate` (file lock on the query engine `.dll.node`).
+- `dotenv` prints a rotating promotional "tip" line on every `config()` call (once referenced `www.vestauth.com`) — cosmetic, not a security concern.
 
-## Update (2026-08-09, session 2): app shell + Home Dashboard
-Added the actual "operating system" behind "Enter your library" (was just an anchor link before):
-- `app/(os)/layout.tsx` — sidebar (`components/app/sidebar.tsx`) + topbar (`components/app/topbar.tsx`) shell, nav data in `lib/nav.ts` (matches the spec's full Information Architecture: Home, Library, Collections, Library Map, Wishlist, Authors, Publishers, Series, Genres, Reading, Quotes, Notes, Timeline, AI Librarian, Analytics, Settings, Profile)
-- `app/(os)/dashboard/page.tsx` — the real Home Dashboard: stat tiles, today's pick, continue reading, AI insights, reading challenge ring, recently added shelf, favorite genres/authors. Runs entirely on `lib/mock-data.ts` — **no real data yet**.
-- Every other nav item routes through `app/(os)/[section]/page.tsx`, a shared "this module hasn't been built yet" placeholder (returns a real 404 via `notFound()` for unknown paths, so it's not a catch-all).
-- `prisma/schema.prisma` — full data model (Book, Author/BookContributor, Publisher, Series, Genre, Tag, Shelf, Quote, Note, ReadingSession) covering the spec's BOOK DETAILS fields. **Prisma 7** (breaking changes from what most training data / older Prisma docs assume — see below).
-- `lib/prisma.ts` — PrismaClient singleton using `@prisma/adapter-neon` (matches the Neon convention from her other projects). Not imported anywhere yet — the dashboard still reads mock data.
+## Next steps
+1. Migrate Dashboard, Analytics, Reading Life, Timeline, and Notes to the real database. `lib/analytics.ts` / `lib/reading.ts` / `lib/timeline.ts` need to accept a `books` (and, for Analytics, real purchase-price) parameter instead of importing `MOCK_BOOKS` directly — same pattern already used for `lib/collections.ts` / `lib/series.ts` / `lib/publishers.ts` — and their pages need to become `async` and fetch via `lib/db-books.ts`. Fix Analytics' `getBookDetail()` call per the Gotcha above.
+2. Make Add Book actually persist — it's a complete, validated form that currently does nothing on submit. Needs a Server Action (follow `app/(os)/ai/actions.ts`'s pattern) that creates a `Book` row plus `Author`/`Genre`/`Publisher` upserts, then revalidates the Library page.
+3. Book edit/delete — not started.
+4. Build the Profile page — the only remaining unbuilt nav item.
+5. Once the whole app reads from the database, `lib/mock-data.ts` and `lib/book-detail.ts` become dead code for the app itself (still needed by `prisma/seed.ts`) — worth a cleanup pass, but don't delete what the seed script depends on.
 
-### Prisma 7 gotchas hit this session (worth knowing before touching the schema again)
-- `datasource { url = env(...) }` in `schema.prisma` **no longer works** — v7 moved this to `prisma.config.ts`'s `datasource.url`, and `adapter` was removed from config entirely (migrations "just work" with driver adapters now).
-- `PrismaClient` now **requires** an `adapter` in its constructor (unless using Accelerate) — there's no more implicit "read `DATABASE_URL` from schema" behavior. Hence `@prisma/adapter-neon` + `@neondatabase/serverless` + `ws` in `lib/prisma.ts`.
-- `prisma.config.ts`'s `env()` helper **throws** if the var is unset — this broke the first Vercel deploy (`postinstall: prisma generate` failed the whole build because `DATABASE_URL` isn't set yet, no DB provisioned). Fixed by reading `process.env.DATABASE_URL ?? ""` directly instead of the `env()` helper. If you add real env handling later, keep in mind `prisma generate` must survive a completely unset `DATABASE_URL` since that's the state until a database exists.
-- These aren't documented in the public Prisma docs yet as of this session (WebFetch of the official pages returned v6 content) — what's here was reverse-engineered from the installed `prisma@7.9.1` package's own `.d.ts` files (`node_modules/@prisma/config/dist/index.d.ts`, generated client's `index.d.ts`). Re-check the actual installed version's types before trusting any Prisma 7 guidance from training data.
-
-## Update (2026-08-09, session 3): Library page
-Added `/library` (`app/(os)/library/page.tsx` → `components/library/library-view.tsx`): a browsable grid/list of 28 mock books (`MOCK_BOOKS` in `lib/mock-data.ts`) with live search (title/author), status filter chips, genre dropdown, sort (title/author/newest/longest), and a grid/list toggle — all client-side state, no backend. Status badge styling lives in `lib/book-status.ts`. Verified: search, status filtering, and list view all confirmed working correctly against the DOM (not just eyeballed).
-
-## Update (2026-08-09, session 4): Book Detail page
-Added `/library/[id]` (`app/(os)/library/[id]/page.tsx`): cover, status/rating, genre/format/year/pages chips, shelf location, Summary, AI Summary, Favorite Quote (only shown when `rating >= 4`), and a Details card (publisher, ISBN-13, language, condition, purchase price) + Tags. `lib/book-detail.ts` deterministically derives all of this from each `MockBook` (hashed by id+title, so it's stable across renders) rather than hand-authoring 28 detail records. `BookCard` and `BookListRow` now link to it.
-
-## Update (2026-08-09, session 5): 5 more modules in one batch
-- **Add Book** (`components/app/add-book-dialog.tsx`): real modal form in the topbar (title/author required, genre/format/status selects), client-validated, shows a success state on submit. Explicitly labeled "Preview only — no database is connected yet" — it does **not** persist anywhere (no localStorage, nothing). Don't be surprised a submitted book doesn't show up in Library; that's intentional, not a bug, until a real backend exists.
-- **Wishlist** (`/wishlist`) — grid of `status === "wishlist"` books, reuses `BookCard`.
-- **Authors** (`/authors`) — aggregated from `MOCK_BOOKS` (name, count, genres), sorted by count. Cards link to `/library?q=<author name>`.
-- **Genres** (`/genres`) — same idea, links to `/library?genre=<genre>`.
-- **Quotes** (`/quotes`) — wall of every book's `favoriteQuote` (rating ≥ 4 only), linking to that book's detail page.
-- To make the Authors/Genres deep links work, `LibraryView` now reads its initial `query`/`genre` state from `useSearchParams()`, and `app/(os)/library/page.tsx` wraps it in `<Suspense>` (Next requires this for `useSearchParams` in a statically-rendered route — without it the build fails). The route stayed statically prerendered (`○`) even with this change.
-- Fixed a content bug caught during this session's own verification: every book's favorite quote was the identical hardcoded string — added `QUOTE_TEMPLATES` (6 variants) in `lib/book-detail.ts`, picked deterministically by the same hash used for other derived fields. Worth remembering: skim generated/derived mock content for this kind of "technically works, looks obviously fake" issue before shipping, not just check it renders.
-
-## Update (2026-08-09, session 6): AI Librarian
-Added `/ai` — a real chat UI (`components/ai/ai-chat.tsx`) backed by a rule-based query engine (`lib/ai-librarian.ts`) over `MOCK_BOOKS`. Handles: author lookups, genre filters, "shorter than N pages", "where is `<title>`", "summarize `<title>`" (reuses `getBookDetail().aiSummary`), "recommend books like `<title>`" (same-genre pool), and "never read"/unread queries. Anything it can't parse gets an honest fallback message explaining it's pattern matching, not a live model, with example query shapes. No AI API (OpenAI/Claude) is wired up — this is deliberately NOT a real LLM call, just enough logic to make the chat feel alive and demonstrate the intended UX. Verified all 5 suggestion chips return sensible answers, including one deliberately-unhandleable query ("which books mention quantum physics") to confirm the fallback reads as helpful rather than broken.
-
-## Update (2026-08-09, session 7): Search
-The topbar search box (present on every OS page) was purely decorative until now. It's a plain `<form action="/search"><input name="q" /></form>` — no client JS, native GET navigation. `/search` (`app/(os)/search/page.tsx`) reads `searchParams` server-side and matches books (title/author/genre), authors, and favorite quotes against the query, in grouped sections. Has an empty-query hint state and a no-results state. Verified: real topbar submission, multi-category results, author-only results, quote-only results, both empty states — all correct, console clean on the live deployment.
-
-## Update (2026-08-09, session 8): Analytics
-Added `/analytics` (`lib/analytics.ts` + `components/analytics/bar-list.tsx`): estimated collection value, total pages, average rating, average price stat tiles, plus bar breakdowns by decade, genre, reading status, rating (1-5 stars), and format — all computed live from `MOCK_BOOKS`/`getBookDetail()`, not separately hand-maintained chart arrays like the dashboard's mini-charts. Verified the reading-status counts (13 completed / 7 unread / 4 reading / 3 wishlist / 1 DNF = 28) exactly match every other place that's been checked this session (Library filters, AI Librarian "unread" query). Caught one bad edge case in review: Meditations (180 AD) was producing a literal "180s" decade bucket next to "1960s" — added a "Pre-1500" catch-all bucket for anything that old.
-
-## Update (2026-08-09, session 9): Reading Life
-Added `/reading` (`lib/reading.ts`): currently-reading detail cards with a deterministic "Day N · X%" derived from the shared `hashCode` helper (now exported from `lib/book-detail.ts` instead of module-private), the existing `ReadingChallengeRing` component reused as-is, a books-completed-by-month bar chart, the full completed-this-year list, and a DNF shelf. Cross-checked every count (4 reading / 13 completed / 1 DNF, monthly chart summing to 13) against Library, Analytics, and AI Librarian from earlier sessions — all consistent.
-
-## Update (2026-08-09, session 10): Collections
-Added `/collections` + `/collections/[slug]` (`lib/collections.ts`): 7 smart, auto-generated groupings (5-Star Favorites, Currently Reading, Wishlist, Quick Reads, Rare & Leather-Bound, This Decade, Timeless Classics), each a plain filter predicate over `MOCK_BOOKS` — no manual curation backend exists, so these are computed, not stored. Index page shows a stacked-cover preview + count per collection; detail page reuses `BookCard` in the same grid as Library/Wishlist. Verified counts (8 five-star, 4 reading, 3 wishlist, 5 quick-reads) against Analytics/AI Librarian, and confirmed a real 404 for an invalid slug.
-
-## Update (2026-08-09, session 11): Publishers, Series, Notes, Timeline, Settings
-Batched 5 more pages:
-- **Publishers** (`lib/publishers.ts`) — aggregated by each book's `getBookDetail().publisher` (a derived field, not a `MockBook` property), self-contained `/publishers/[slug]` grid like Collections.
-- **Series** — added optional `series`/`seriesVolume` fields to `MockBook` (`lib/mock-data.ts`). Only Le Guin's books qualify: Hainish Cycle (`The Left Hand of Darkness` vol. 4, `The Dispossessed` vol. 1) and Earthsea Cycle (`A Wizard of Earthsea` vol. 1) — chosen because they're real published series, not invented. Everything else in the mock set is standalone.
-- **Notes** (`lib/mock-notes.ts`) — 6 hand-written reading-journal entries tied to specific books, dated and sorted newest-first.
-- **Timeline** (`lib/timeline.ts`) — chronological feed combining "started reading" (from `getCurrentlyReading`'s day-count), "finished" (from `getCompletedThisYear`), and "wrote a note" events.
-- **Settings** — Appearance/AI/Notifications/Backup sections; toggles are real React state (`components/settings/settings-toggle.tsx`) so they respond in the UI, but nothing persists — labeled explicitly.
-
-**Real bug caught and fixed during this session's own verification:** Timeline's "Finished" events used a fully random month (0–11) with a hardcoded day-15, so books could show as "finished" in December while today was August — a book can't be finished in the future. Fixed in `lib/reading.ts`'s `getCompletedThisYear` by bounding the month to `<= current month` and clamping the day when it lands in the current month, so nothing is ever dated after today. Verified with a script comparing every rendered date against `new Date()`, both locally and on the production deployment (different clock/timezone) — zero future dates in either. This is the same class of bug as session 5's repeated-quote text and session 8's "180s" decade bucket: derived/generated content needs an actual correctness check, not just a "does it render" check.
-
-## Update (2026-08-09, session 12): Real Neon database — Library + Book Detail now live
-
-**The database is real now.** Provisioned via `npx vercel integration add neon --claim --environment production --environment preview --environment development` (Vercel Marketplace → Neon), which auto-wrote `DATABASE_URL`/`DATABASE_URL_UNPOOLED`/etc. to `.env.local` and connected all three Vercel environments. Ran `npx prisma migrate dev --name init` to create the real tables, then seeded with `npx prisma db seed` (`prisma/seed.ts`), which reuses `lib/mock-data.ts` + `lib/book-detail.ts` + `lib/mock-notes.ts` directly — so the seeded rows are exactly the same 28 books, in the same shape, the app has displayed all session. Seed counts (28 books, 18 authors, 8 publishers, 7 genres, 2 series, 7 shelves, 6 notes) matched every count already cross-checked elsewhere this session.
-
-**`/library` and `/library/[id]` are now wired to Prisma, not `MOCK_BOOKS`.** `lib/db-books.ts` adapts real `Book` rows (with `contributors`/`genres`/`publisher`/`series`/`shelf` relations) into the same `MockBook` shape the UI already consumed, so `BookCard`, `BookListRow`, and `LibraryView` needed zero changes — only the two page files changed what they fetch from. Both routes are `force-dynamic` and use the same real (cuid) ids end-to-end, so list→detail navigation stays consistent — this was a real risk (mapping Library to DB ids while Detail still looked up `MOCK_BOOKS` by the old "1".."28" ids would have 404'd every click), avoided by wiring both together in the same pass rather than one at a time.
-
-**Every other page is still on `MOCK_BOOKS`**: Dashboard, Wishlist, Collections, Authors, Genres, Publishers, Series, Quotes, Search, AI Librarian, Analytics, Reading, Timeline, Notes. Add Book still doesn't persist. This was a deliberate scope cut — rewiring all 19 screens in one pass risked leaving something half-broken; Library + Book Detail together form one complete, consistent navigation loop.
-
-**Gotcha discovered and worth knowing before touching Library/Book Detail again:** the Browser-pane preview tool failed to visually render `/library`'s content after this change, even though server logs showed clean 200 responses every time and `fetch()`ing the page directly showed the correct HTML present in a hidden `<div id="S:0">` — Next's client-side script to swap that streamed content into the visible Suspense boundary just never ran in this tool. This is the same class of issue as the already-documented "RAF never fires in the Browser pane" gotcha, now confirmed to extend to Suspense-content-swapping, not just animations. **Don't chase this by staring at the Browser pane** — check the raw `fetch()` response for the real content first. The actual fix here was also a code improvement: the `<Suspense>` wrapper around `LibraryView` was leftover from when the page could theoretically be statically generated (needed for `useSearchParams` in a client component); now that the page is unconditionally `force-dynamic` (implied by the live DB query), it's never statically generated, so the wrapper was pure overhead — removed it, which fixed the tool-visibility issue as a side effect.
-
-**Minor:** the `dotenv` package printed a promotional "tip" line referencing `www.vestauth.com` during `prisma db seed` — flagged to Dhanu as very likely `dotenv`'s own known (if unsolicited) rotating-tip/ad feature, not a supply-chain concern, since it wasn't an instruction and nothing acted on it.
-
-## Update (2026-08-09, session 13): Wishlist, Authors, Genres, Publishers, Series, Collections now on the real DB
-All six now call `getAllBooksFromDb()` instead of importing `MOCK_BOOKS`. Wishlist/Authors/Genres needed no `lib/` changes (already parameterized over a `MockBook[]`). Series and Collections' helpers (`lib/series.ts`, `lib/collections.ts`) were changed to take a `books` array instead of reading `MOCK_BOOKS` internally.
-
-**Publishers needed a real fix, not just a data-source swap**: its aggregation called `getBookDetail(book).publisher`, which derives a fake publisher from a hash of `book.id` — harmless for `MOCK_BOOKS`' stable "1".."28" ids, but silently wrong for DB books (real cuids), since the hash would produce a *different* publisher than what's actually stored. Added a real `publisher?: string` field to `MockBook` (`lib/mock-data.ts`), populated it from the DB relation in `lib/db-books.ts`'s mapper, and made `lib/publishers.ts` prefer that real field with the hash-based lookup only as a fallback. **This is a pattern worth remembering when wiring any remaining page**: any place still calling `getBookDetail()` on what might now be a DB-sourced book needs the same scrutiny — hash-derived fields (shelf, ISBN, price, condition, summary, AI summary, favorite quote) will silently diverge from the real stored values once the book's id is a real cuid instead of the original mock "1".."28".
-
-All six pages verified against counts already cross-checked earlier this session (3 wishlist, 18 authors, 7 genres, 8 publishers summing to 28, 2 series, all 7 collection counts) — no drift.
-
-## Update (2026-08-09, session 14): Quotes and Search now on the real Quote table
-Added `getQuotesFromDb()` and `searchQuotesFromDb(query)` to `lib/db-books.ts` — the latter does a real Postgres `ILIKE`-style `contains`/`insensitive` search against the `Quote` table, not an in-memory filter. `/quotes` now lists real `Quote` rows (13, matching the 13 books rated 4+ stars — Prisma seed only creates a `Quote` for those). `/search`'s book/author matching now reads `getAllBooksFromDb()`, and its quote-matching section uses `searchQuotesFromDb()` instead of recomputing `getBookDetail(book).favoriteQuote` (which, per session 13's note, would have been wrong for DB-sourced books). Verified: quote count, a quote-text search, and a book/author search all returned results identical to what mock data produced earlier this session.
-
-## Update (2026-08-09, session 15): AI Librarian now queries the real database via a Server Action
-This was the bigger lift flagged in session 14: `lib/ai-librarian.ts`'s rule engine was fully synchronous over `MOCK_BOOKS`. Converted `answerQuery` to take a `LibrarianBook[]` parameter (real book data, not an import) instead. Added `getLibrarianBooksFromDb()` to `lib/db-books.ts` — same underlying query as `getAllBooksFromDb()` but also surfaces real `shelf`, `shelfPosition`, and `aiSummary`.
-
-Since the chat UI (`components/ai/ai-chat.tsx`) is a client component and can't call Prisma directly, added a `"use server"` action at `app/(os)/ai/actions.ts` (`askLibrarian(query)`) that fetches the real books and runs `answerQuery`. The chat now `await`s this per message instead of calling a synchronous local function — added a `pending` state with a bouncing-dots indicator while the round-trip is in flight.
-
-Verified: "Where is Circe?" returns the real stored shelf (B2, position 14 — matching the Book Detail page exactly), and recommend/unread/page-count queries all returned results identical to the mock-data version from earlier sessions. Console clean on both local and production.
-
-### Still not built
-No auth, Profile page (still a placeholder), import pipeline, no book edit or delete, no actual LLM behind the AI Librarian (still pattern-matching, just against real data now). Dashboard, Analytics, Reading, Timeline, and Notes still read `MOCK_BOOKS` — these are lower-risk swaps than what's been done so far (none of them depend on `getBookDetail()`'s hash-derived fields the way Publishers/Quotes/Search/AI Librarian did). This is still an early slice of an 11-phase spec — expect this to take many more sessions, similar to how her NEXORA Finance OS project took ~24 sessions.
+## Open questions
+- Real AI (OpenAI/Claude API key) behind AI Librarian, or keep it rule-based indefinitely? Not discussed with Dhanu.
+- Auth — the app has none. Worth adding before this is ever exposed beyond Dhanu's own use?
+- Whether to keep building out every remaining spec module at the current shallow-but-broad pace, or shift to depth (real book editing, real search relevance, a real import pipeline) on what already exists.
