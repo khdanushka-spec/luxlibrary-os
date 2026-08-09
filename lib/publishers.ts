@@ -1,8 +1,7 @@
-import { getBookDetail } from "@/lib/book-detail";
 import type { MockBook } from "@/lib/mock-data";
 
 function publisherOf(book: MockBook) {
-  return book.publisher ?? getBookDetail(book).publisher;
+  return book.publisher ?? "Unknown";
 }
 
 export function getPublishers(books: MockBook[]) {
