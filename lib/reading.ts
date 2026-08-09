@@ -1,13 +1,13 @@
 import { hashCode } from "@/lib/book-detail";
-import { MOCK_BOOKS, MOCK_STATS, type MockBook } from "@/lib/mock-data";
+import { MOCK_STATS, type MockBook } from "@/lib/mock-data";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-export function getCurrentlyReading() {
-  return MOCK_BOOKS.filter((b) => b.status === "reading").map((book) => {
+export function getCurrentlyReading(books: MockBook[]) {
+  return books.filter((b) => b.status === "reading").map((book) => {
     const seed = hashCode(book.id + "reading");
     const progress = 15 + (seed % 80);
     const daysReading = 3 + (seed % 40);
@@ -15,10 +15,10 @@ export function getCurrentlyReading() {
   });
 }
 
-export function getCompletedThisYear() {
+export function getCompletedThisYear(books: MockBook[]) {
   const today = new Date();
   const currentMonth = today.getMonth();
-  return MOCK_BOOKS.filter((b) => b.status === "completed")
+  return books.filter((b) => b.status === "completed")
     .map((book) => {
       const seed = hashCode(book.id + "completed");
       const month = seed % (currentMonth + 1);
@@ -29,21 +29,21 @@ export function getCompletedThisYear() {
     .sort((a, b) => b.month - a.month || b.day - a.day);
 }
 
-export function getDnfBooks(): MockBook[] {
-  return MOCK_BOOKS.filter((b) => b.status === "dnf");
+export function getDnfBooks(books: MockBook[]): MockBook[] {
+  return books.filter((b) => b.status === "dnf");
 }
 
-export function getMonthlyReadingCounts() {
-  const completed = getCompletedThisYear();
+export function getMonthlyReadingCounts(books: MockBook[]) {
+  const completed = getCompletedThisYear(books);
   return MONTHS.map((label, i) => ({
     label,
     count: completed.filter((c) => c.month === i).length,
   }));
 }
 
-export function getReadingStats() {
-  const currentlyReading = getCurrentlyReading();
-  const completedThisYear = getCompletedThisYear();
+export function getReadingStats(books: MockBook[]) {
+  const currentlyReading = getCurrentlyReading(books);
+  const completedThisYear = getCompletedThisYear(books);
   const pagesReadThisYear = completedThisYear.reduce(
     (sum, c) => sum + c.book.pages,
     0

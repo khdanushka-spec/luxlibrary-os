@@ -1,7 +1,11 @@
 import { MOCK_READING_CHALLENGE } from "@/lib/mock-data";
 
-export function ReadingChallengeRing() {
-  const { goal, completed, year } = MOCK_READING_CHALLENGE;
+type ReadingChallengeRingProps = {
+  completed: number;
+};
+
+export function ReadingChallengeRing({ completed }: ReadingChallengeRingProps) {
+  const { goal, year } = MOCK_READING_CHALLENGE;
   const pct = Math.min(100, Math.round((completed / goal) * 100));
   const radius = 42;
   const circumference = 2 * Math.PI * radius;

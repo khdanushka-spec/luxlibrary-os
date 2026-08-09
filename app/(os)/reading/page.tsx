@@ -3,6 +3,7 @@ import { BarList } from "@/components/analytics/bar-list";
 import { BookListRow } from "@/components/library/book-list-row";
 import { ReadingChallengeRing } from "@/components/dashboard/reading-challenge-ring";
 import { coverGradient } from "@/lib/mock-data";
+import { getAllBooksFromDb } from "@/lib/db-books";
 import {
   getCompletedThisYear,
   getCurrentlyReading,
@@ -15,12 +16,16 @@ export const metadata = {
   title: "Reading Life — LuxLibrary OS",
 };
 
-export default function ReadingPage() {
-  const currentlyReading = getCurrentlyReading();
-  const completedThisYear = getCompletedThisYear();
-  const dnfBooks = getDnfBooks();
-  const monthly = getMonthlyReadingCounts();
-  const stats = getReadingStats();
+export const dynamic = "force-dynamic";
+
+export default async function ReadingPage() {
+  const books = await getAllBooksFromDb();
+
+  const currentlyReading = getCurrentlyReading(books);
+  const completedThisYear = getCompletedThisYear(books);
+  const dnfBooks = getDnfBooks(books);
+  const monthly = getMonthlyReadingCounts(books);
+  const stats = getReadingStats(books);
 
   const statTiles = [
     { icon: BookOpen, label: "Currently reading", value: stats.currentlyReadingCount },
@@ -91,7 +96,7 @@ export default function ReadingPage() {
           </div>
         </div>
 
-        <ReadingChallengeRing />
+        <ReadingChallengeRing completed={completedThisYear.length} />
       </div>
 
       <div className="rounded-2xl border border-border/70 bg-card/60 p-6">

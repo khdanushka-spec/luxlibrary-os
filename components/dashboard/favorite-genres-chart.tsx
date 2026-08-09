@@ -1,7 +1,9 @@
-import { MOCK_FAVORITE_GENRES } from "@/lib/mock-data";
+type FavoriteGenresChartProps = {
+  genres: { label: string; value: number }[];
+};
 
-export function FavoriteGenresChart() {
-  const max = Math.max(...MOCK_FAVORITE_GENRES.map((g) => g.value));
+export function FavoriteGenresChart({ genres }: FavoriteGenresChartProps) {
+  const max = Math.max(1, ...genres.map((g) => g.value));
 
   return (
     <div className="rounded-2xl border border-border/70 bg-card/60 p-6">
@@ -9,7 +11,7 @@ export function FavoriteGenresChart() {
         Favorite Genres
       </h3>
       <div className="space-y-3.5">
-        {MOCK_FAVORITE_GENRES.map((genre) => (
+        {genres.map((genre) => (
           <div key={genre.label}>
             <div className="mb-1 flex items-baseline justify-between text-xs">
               <span className="text-foreground">{genre.label}</span>

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { BookFormat, BookStatus, MockBook } from "@/lib/mock-data";
+import type { MockNote } from "@/lib/mock-notes";
 
 function toTitleCase(value: string) {
   return value.charAt(0) + value.slice(1).toLowerCase();
@@ -78,6 +79,78 @@ export async function searchQuotesFromDb(
     include: { book: { include: bookInclude } },
   });
   return quotes.map((q) => ({ book: toMockBook(q.book), favoriteQuote: q.text }));
+}
+
+export async function getCollectionValueFromDb() {
+  const agg = await prisma.book.aggregate({
+    _sum: { purchasePrice: true },
+    _avg: { purchasePrice: true },
+  });
+  return {
+    total: agg._sum.purchasePrice ? Number(agg._sum.purchasePrice) : 0,
+    average: agg._avg.purchasePrice ? Number(agg._avg.purchasePrice) : 0,
+  };
+}
+
+export async function getDashboardStatsFromDb() {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const [totalBooks, currentlyReading, addedThisMonth, valueAgg] = await Promise.all([
+    prisma.book.count(),
+    prisma.book.count({ where: { readingStatus: "READING" } }),
+    prisma.book.count({ where: { createdAt: { gte: startOfMonth } } }),
+    prisma.book.aggregate({ _sum: { purchasePrice: true } }),
+  ]);
+
+  return {
+    totalBooks,
+    currentlyReading,
+    addedThisMonth,
+    collectionValueUsd: valueAgg._sum.purchasePrice ? Number(valueAgg._sum.purchasePrice) : 0,
+  };
+}
+
+export async function getRecentlyAddedFromDb(limit = 6): Promise<MockBook[]> {
+  const books = await prisma.book.findMany({
+    include: bookInclude,
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+  return books.map(toMockBook);
+}
+
+export async function getTopGenresFromDb(limit = 5) {
+  const genres = await prisma.genre.findMany({
+    include: { _count: { select: { books: true } } },
+  });
+  return genres
+    .map((g) => ({ label: g.name, value: g._count.books }))
+    .filter((g) => g.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, limit);
+}
+
+export async function getTopAuthorsFromDb(limit = 4) {
+  const authors = await prisma.author.findMany({
+    include: { _count: { select: { books: true } } },
+  });
+  return authors
+    .map((a) => ({ name: a.name, books: a._count.books }))
+    .filter((a) => a.books > 0)
+    .sort((a, b) => b.books - a.books)
+    .slice(0, limit);
+}
+
+export async function getNotesFromDb(): Promise<MockNote[]> {
+  const notes = await prisma.note.findMany({ orderBy: { createdAt: "desc" } });
+  return notes.map((n) => ({
+    id: n.id,
+    bookId: n.bookId ?? "",
+    date: n.createdAt.toISOString().slice(0, 10),
+    content: n.content,
+  }));
 }
 
 export async function getBookDetailFromDb(id: string) {

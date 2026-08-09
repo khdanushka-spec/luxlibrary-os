@@ -1,5 +1,5 @@
-import { MOCK_BOOKS } from "@/lib/mock-data";
-import { MOCK_NOTES } from "@/lib/mock-notes";
+import type { MockBook } from "@/lib/mock-data";
+import type { MockNote } from "@/lib/mock-notes";
 import { getCompletedThisYear, getCurrentlyReading } from "@/lib/reading";
 
 export type TimelineEvent = {
@@ -11,10 +11,10 @@ export type TimelineEvent = {
   description: string;
 };
 
-export function getTimelineEvents(): TimelineEvent[] {
+export function getTimelineEvents(books: MockBook[], notes: MockNote[]): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
-  for (const { book, daysReading } of getCurrentlyReading()) {
+  for (const { book, daysReading } of getCurrentlyReading(books)) {
     const date = new Date();
     date.setDate(date.getDate() - daysReading);
     events.push({
@@ -28,7 +28,7 @@ export function getTimelineEvents(): TimelineEvent[] {
   }
 
   const currentYear = new Date().getFullYear();
-  for (const { book, month, day } of getCompletedThisYear()) {
+  for (const { book, month, day } of getCompletedThisYear(books)) {
     events.push({
       id: `finished-${book.id}`,
       date: new Date(currentYear, month, day),
@@ -39,8 +39,8 @@ export function getTimelineEvents(): TimelineEvent[] {
     });
   }
 
-  for (const note of MOCK_NOTES) {
-    const book = MOCK_BOOKS.find((b) => b.id === note.bookId);
+  for (const note of notes) {
+    const book = books.find((b) => b.id === note.bookId);
     events.push({
       id: `note-${note.id}`,
       date: new Date(note.date),

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { BookOpen, CheckCircle2, Clock, NotebookText } from "lucide-react";
+import { getAllBooksFromDb, getNotesFromDb } from "@/lib/db-books";
 import { getTimelineEvents } from "@/lib/timeline";
 
 export const metadata = {
   title: "Timeline — LuxLibrary OS",
 };
+
+export const dynamic = "force-dynamic";
 
 const TYPE_CONFIG = {
   started: { icon: BookOpen, className: "bg-sky-400/15 text-sky-400" },
@@ -12,8 +15,9 @@ const TYPE_CONFIG = {
   note: { icon: NotebookText, className: "bg-gold/15 text-gold" },
 };
 
-export default function TimelinePage() {
-  const events = getTimelineEvents();
+export default async function TimelinePage() {
+  const [books, notes] = await Promise.all([getAllBooksFromDb(), getNotesFromDb()]);
+  const events = getTimelineEvents(books, notes);
 
   return (
     <div className="flex flex-col gap-6">

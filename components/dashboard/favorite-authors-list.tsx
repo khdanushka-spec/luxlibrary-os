@@ -1,13 +1,15 @@
-import { MOCK_FAVORITE_AUTHORS } from "@/lib/mock-data";
+type FavoriteAuthorsListProps = {
+  authors: { name: string; books: number }[];
+};
 
-export function FavoriteAuthorsList() {
+export function FavoriteAuthorsList({ authors }: FavoriteAuthorsListProps) {
   return (
     <div className="rounded-2xl border border-border/70 bg-card/60 p-6">
       <h3 className="mb-5 text-sm font-medium text-foreground">
         Favorite Authors
       </h3>
       <div className="space-y-4">
-        {MOCK_FAVORITE_AUTHORS.map((author) => (
+        {authors.map((author) => (
           <div key={author.name} className="flex items-center gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-medium text-foreground">
               {author.name

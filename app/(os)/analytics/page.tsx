@@ -1,13 +1,20 @@
 import { BarChart3, BookOpen, DollarSign, Star } from "lucide-react";
 import { BarList } from "@/components/analytics/bar-list";
 import { getAnalytics } from "@/lib/analytics";
+import { getAllBooksFromDb, getCollectionValueFromDb } from "@/lib/db-books";
 
 export const metadata = {
   title: "Analytics — LuxLibrary OS",
 };
 
-export default function AnalyticsPage() {
-  const a = getAnalytics();
+export const dynamic = "force-dynamic";
+
+export default async function AnalyticsPage() {
+  const [books, value] = await Promise.all([
+    getAllBooksFromDb(),
+    getCollectionValueFromDb(),
+  ]);
+  const a = getAnalytics(books, value.total, value.average);
 
   const stats = [
     {

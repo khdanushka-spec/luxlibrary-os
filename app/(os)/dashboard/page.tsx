@@ -7,33 +7,57 @@ import { ReadingChallengeRing } from "@/components/dashboard/reading-challenge-r
 import { RecentlyAddedShelf } from "@/components/dashboard/recently-added-shelf";
 import { FavoriteGenresChart } from "@/components/dashboard/favorite-genres-chart";
 import { FavoriteAuthorsList } from "@/components/dashboard/favorite-authors-list";
+import { getAiInsights, getTodaysPick } from "@/lib/dashboard";
+import {
+  getAllBooksFromDb,
+  getDashboardStatsFromDb,
+  getRecentlyAddedFromDb,
+  getTopAuthorsFromDb,
+  getTopGenresFromDb,
+} from "@/lib/db-books";
+import { getCompletedThisYear, getCurrentlyReading } from "@/lib/reading";
 
 export const metadata = {
   title: "Home — LuxLibrary OS",
 };
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const [books, stats, recentlyAdded, topGenres, topAuthors] = await Promise.all([
+    getAllBooksFromDb(),
+    getDashboardStatsFromDb(),
+    getRecentlyAddedFromDb(),
+    getTopGenresFromDb(),
+    getTopAuthorsFromDb(),
+  ]);
+
+  const currentlyReading = getCurrentlyReading(books);
+  const completedThisYear = getCompletedThisYear(books);
+  const todaysPick = getTodaysPick(books);
+  const insights = getAiInsights(books, completedThisYear.length);
+
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <WelcomeBanner />
-      <StatTiles />
+      <StatTiles stats={stats} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <TodaysPickCard />
-          <ContinueReadingList />
+          <TodaysPickCard pick={todaysPick} />
+          <ContinueReadingList items={currentlyReading} />
         </div>
         <div className="space-y-6">
-          <ReadingChallengeRing />
-          <AiInsightsCard />
+          <ReadingChallengeRing completed={completedThisYear.length} />
+          <AiInsightsCard insights={insights} />
         </div>
       </div>
 
-      <RecentlyAddedShelf />
+      <RecentlyAddedShelf books={recentlyAdded} />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <FavoriteGenresChart />
-        <FavoriteAuthorsList />
+        <FavoriteGenresChart genres={topGenres} />
+        <FavoriteAuthorsList authors={topAuthors} />
       </div>
     </div>
   );

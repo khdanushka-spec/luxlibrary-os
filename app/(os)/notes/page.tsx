@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { NotebookText } from "lucide-react";
-import { MOCK_BOOKS } from "@/lib/mock-data";
-import { MOCK_NOTES } from "@/lib/mock-notes";
+import { getAllBooksFromDb, getNotesFromDb } from "@/lib/db-books";
 
 export const metadata = {
   title: "Notes — LuxLibrary OS",
 };
 
-export default function NotesPage() {
-  const notes = [...MOCK_NOTES].sort((a, b) => b.date.localeCompare(a.date));
+export const dynamic = "force-dynamic";
+
+export default async function NotesPage() {
+  const [books, rawNotes] = await Promise.all([getAllBooksFromDb(), getNotesFromDb()]);
+  const notes = [...rawNotes].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,7 +26,7 @@ export default function NotesPage() {
 
       <div className="mx-auto w-full max-w-2xl space-y-5">
         {notes.map((note) => {
-          const book = MOCK_BOOKS.find((b) => b.id === note.bookId);
+          const book = books.find((b) => b.id === note.bookId);
           return (
             <div
               key={note.id}
