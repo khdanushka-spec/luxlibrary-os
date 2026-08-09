@@ -30,6 +30,11 @@ export function AddBookDialog() {
   const [genre, setGenre] = useState(GENRE_OPTIONS[0]);
   const [format, setFormat] = useState(FORMAT_OPTIONS[0]);
   const [status, setStatus] = useState(STATUS_OPTIONS[0]);
+  const [publisher, setPublisher] = useState("");
+  const [isbn13, setIsbn13] = useState("");
+  const [pages, setPages] = useState("");
+  const [year, setYear] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -49,6 +54,11 @@ export function AddBookDialog() {
     setGenre(GENRE_OPTIONS[0]);
     setFormat(FORMAT_OPTIONS[0]);
     setStatus(STATUS_OPTIONS[0]);
+    setPublisher("");
+    setIsbn13("");
+    setPages("");
+    setYear("");
+    setPurchasePrice("");
   }
 
   function handleSubmit(e: FormEvent) {
@@ -57,7 +67,18 @@ export function AddBookDialog() {
     setError(null);
 
     startTransition(async () => {
-      const result = await addBook({ title, author, genre, format, status });
+      const result = await addBook({
+        title,
+        author,
+        genre,
+        format,
+        status,
+        publisher: publisher.trim() || undefined,
+        isbn13: isbn13.trim() || undefined,
+        pages: pages ? Number(pages) : null,
+        year: year ? Number(year) : null,
+        purchasePrice: purchasePrice ? Number(purchasePrice) : null,
+      });
       if (result.ok) {
         setSubmitted(true);
         router.refresh();
@@ -83,7 +104,7 @@ export function AddBookDialog() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={close}
           />
-          <div className="glass relative w-full max-w-md rounded-2xl border border-border/70 p-6 shadow-2xl">
+          <div className="glass relative max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border/70 p-6 shadow-2xl">
             <button
               onClick={close}
               className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
@@ -188,6 +209,72 @@ export function AddBookDialog() {
                         <option key={s}>{s}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Publisher
+                    </label>
+                    <input
+                      value={publisher}
+                      onChange={(e) => setPublisher(e.target.value)}
+                      placeholder="Anchor Books"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Year
+                      </label>
+                      <input
+                        type="number"
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                        placeholder="2011"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Pages
+                      </label>
+                      <input
+                        type="number"
+                        value={pages}
+                        onChange={(e) => setPages(e.target.value)}
+                        placeholder="512"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        ISBN-13
+                      </label>
+                      <input
+                        value={isbn13}
+                        onChange={(e) => setIsbn13(e.target.value)}
+                        placeholder="978-0385541213"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Purchase price
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={purchasePrice}
+                        onChange={(e) => setPurchasePrice(e.target.value)}
+                        placeholder="24.99"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
 

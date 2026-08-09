@@ -52,6 +52,11 @@ export default async function BookDetailPage({
             format={book.format}
             status={book.status}
             rating={book.rating}
+            publisher={book.publisher}
+            isbn13={detail.isbn13}
+            pages={book.pages || undefined}
+            year={book.year || undefined}
+            purchasePrice={detail.purchasePrice}
           />
           <DeleteBookButton id={book.id} />
         </div>
