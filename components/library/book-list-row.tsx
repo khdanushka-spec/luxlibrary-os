@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { STATUS_CONFIG } from "@/lib/book-status";
 import { coverGradient, type MockBook } from "@/lib/mock-data";
@@ -7,7 +8,10 @@ export function BookListRow({ book, index }: { book: MockBook; index: number }) 
   const status = STATUS_CONFIG[book.status];
 
   return (
-    <div className="flex items-center gap-4 border-b border-border/60 py-3 last:border-b-0">
+    <Link
+      href={`/library/${book.id}`}
+      className="flex items-center gap-4 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-secondary/30"
+    >
       <div
         className={cn(
           "h-14 w-10 shrink-0 rounded bg-gradient-to-br",
@@ -51,6 +55,6 @@ export function BookListRow({ book, index }: { book: MockBook; index: number }) 
       >
         {status.label}
       </span>
-    </div>
+    </Link>
   );
 }

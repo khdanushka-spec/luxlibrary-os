@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { STATUS_CONFIG } from "@/lib/book-status";
 import { coverGradient, type MockBook } from "@/lib/mock-data";
@@ -7,7 +8,7 @@ export function BookCard({ book, index }: { book: MockBook; index: number }) {
   const status = STATUS_CONFIG[book.status];
 
   return (
-    <div className="group">
+    <Link href={`/library/${book.id}`} className="group block">
       <div
         className={cn(
           "relative aspect-[2/3] w-full rounded-lg bg-gradient-to-br shadow-md transition-transform group-hover:-translate-y-1",
@@ -40,6 +41,6 @@ export function BookCard({ book, index }: { book: MockBook; index: number }) {
           ))}
         </div>
       )}
-    </div>
+    </Link>
   );
 }
