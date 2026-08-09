@@ -143,6 +143,14 @@ export async function getTopAuthorsFromDb(limit = 4) {
     .slice(0, limit);
 }
 
+export async function getCollectingSinceFromDb(): Promise<Date | null> {
+  const earliest = await prisma.book.findFirst({
+    orderBy: { createdAt: "asc" },
+    select: { createdAt: true },
+  });
+  return earliest?.createdAt ?? null;
+}
+
 export async function getNotesFromDb(): Promise<MockNote[]> {
   const notes = await prisma.note.findMany({ orderBy: { createdAt: "desc" } });
   return notes.map((n) => ({

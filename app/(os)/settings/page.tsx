@@ -81,8 +81,7 @@ export default function SettingsPage() {
           Data &amp; Backup
         </h3>
         <p className="text-sm text-muted-foreground">
-          Export and automatic backups will be available once a database is
-          connected.
+          Export and automatic backups aren&apos;t built yet.
         </p>
         <button
           disabled
