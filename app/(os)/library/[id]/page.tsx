@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen, MapPin, Quote, Sparkles, Star, Tag } from "lucide-react";
-import { getBookDetail } from "@/lib/book-detail";
+import { hashCode } from "@/lib/book-detail";
 import { STATUS_CONFIG } from "@/lib/book-status";
-import { coverGradient, MOCK_BOOKS } from "@/lib/mock-data";
+import { getBookDetailFromDb } from "@/lib/db-books";
+import { coverGradient } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -12,8 +15,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const book = MOCK_BOOKS.find((b) => b.id === id);
-  return { title: book ? `${book.title} — LuxLibrary OS` : "LuxLibrary OS" };
+  const detail = await getBookDetailFromDb(id);
+  return { title: detail ? `${detail.book.title} — LuxLibrary OS` : "LuxLibrary OS" };
 }
 
 export default async function BookDetailPage({
@@ -22,11 +25,10 @@ export default async function BookDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const index = MOCK_BOOKS.findIndex((b) => b.id === id);
-  if (index === -1) notFound();
+  const detail = await getBookDetailFromDb(id);
+  if (!detail) notFound();
 
-  const book = MOCK_BOOKS[index];
-  const detail = getBookDetail(book);
+  const { book } = detail;
   const status = STATUS_CONFIG[book.status];
 
   return (
@@ -43,7 +45,7 @@ export default async function BookDetailPage({
         <div
           className={cn(
             "aspect-[2/3] w-full rounded-xl bg-gradient-to-br shadow-lg",
-            coverGradient(index)
+            coverGradient(hashCode(book.id))
           )}
         />
 
@@ -90,31 +92,36 @@ export default async function BookDetailPage({
 
           <div className="mt-5 flex items-center gap-1.5 text-sm text-gold">
             <MapPin className="size-4" />
-            Shelf {detail.shelf}, position {detail.shelfPosition}
+            Shelf {detail.shelf}
+            {detail.shelfPosition ? `, position ${detail.shelfPosition}` : ""}
           </div>
         </div>
       </div>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
-            <BookOpen className="size-4 text-gold" />
-            Summary
-          </h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {detail.summary}
-          </p>
-        </div>
+        {detail.summary && (
+          <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+              <BookOpen className="size-4 text-gold" />
+              Summary
+            </h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {detail.summary}
+            </p>
+          </div>
+        )}
 
-        <div className="rounded-2xl border border-gold/20 bg-gold/[0.05] p-6 sm:col-span-2">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-gold">
-            <Sparkles className="size-4" />
-            AI Summary
-          </h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {detail.aiSummary}
-          </p>
-        </div>
+        {detail.aiSummary && (
+          <div className="rounded-2xl border border-gold/20 bg-gold/[0.05] p-6 sm:col-span-2">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-gold">
+              <Sparkles className="size-4" />
+              AI Summary
+            </h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {detail.aiSummary}
+            </p>
+          </div>
+        )}
 
         {detail.favoriteQuote && (
           <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
@@ -136,13 +143,18 @@ export default async function BookDetailPage({
               ["Language", detail.language],
               ["ISBN-13", detail.isbn13],
               ["Condition", detail.condition],
-              ["Purchase price", `$${detail.purchasePrice.toFixed(2)}`],
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">{label}</dt>
-                <dd className="text-right text-foreground">{value}</dd>
-              </div>
-            ))}
+              [
+                "Purchase price",
+                detail.purchasePrice ? `$${detail.purchasePrice.toFixed(2)}` : undefined,
+              ],
+            ]
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
+                <div key={label} className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="text-right text-foreground">{value}</dd>
+                </div>
+              ))}
           </dl>
         </div>
 

@@ -1,15 +1,18 @@
 import { Suspense } from "react";
 import { LibraryView } from "@/components/library/library-view";
-import { MOCK_BOOKS } from "@/lib/mock-data";
+import { getAllBooksFromDb } from "@/lib/db-books";
 
 export const metadata = {
   title: "Library — LuxLibrary OS",
 };
 
-export default function LibraryPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LibraryPage() {
+  const books = await getAllBooksFromDb();
   return (
     <Suspense fallback={null}>
-      <LibraryView books={MOCK_BOOKS} />
+      <LibraryView books={books} />
     </Suspense>
   );
 }
