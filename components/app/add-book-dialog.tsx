@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
-import { addBook } from "@/lib/add-book-actions";
+import { addBook } from "@/lib/book-actions";
 
 const GENRE_OPTIONS = [
   "Literary Fiction",

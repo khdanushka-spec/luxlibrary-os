@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen, MapPin, Quote, Sparkles, Star, Tag } from "lucide-react";
+import { DeleteBookButton } from "@/components/library/delete-book-button";
+import { EditBookDialog } from "@/components/library/edit-book-dialog";
 import { hashCode } from "@/lib/book-detail";
 import { STATUS_CONFIG } from "@/lib/book-status";
 import { getBookDetailFromDb } from "@/lib/db-books";
@@ -33,13 +35,27 @@ export default async function BookDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link
-        href="/library"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        Back to Library
-      </Link>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <Link
+          href="/library"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Library
+        </Link>
+        <div className="flex items-center gap-3">
+          <EditBookDialog
+            id={book.id}
+            title={book.title}
+            author={book.author}
+            genre={book.genre}
+            format={book.format}
+            status={book.status}
+            rating={book.rating}
+          />
+          <DeleteBookButton id={book.id} />
+        </div>
+      </div>
 
       <div className="grid gap-8 sm:grid-cols-[200px_1fr]">
         <div
