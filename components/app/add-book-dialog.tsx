@@ -35,6 +35,8 @@ export function AddBookDialog() {
   const [pages, setPages] = useState("");
   const [year, setYear] = useState("");
   const [purchasePrice, setPurchasePrice] = useState("");
+  const [series, setSeries] = useState("");
+  const [seriesVolume, setSeriesVolume] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -59,6 +61,8 @@ export function AddBookDialog() {
     setPages("");
     setYear("");
     setPurchasePrice("");
+    setSeries("");
+    setSeriesVolume("");
   }
 
   function handleSubmit(e: FormEvent) {
@@ -78,6 +82,8 @@ export function AddBookDialog() {
         pages: pages ? Number(pages) : null,
         year: year ? Number(year) : null,
         purchasePrice: purchasePrice ? Number(purchasePrice) : null,
+        series: series.trim() || undefined,
+        seriesVolume: seriesVolume ? Number(seriesVolume) : null,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -272,6 +278,32 @@ export function AddBookDialog() {
                         value={purchasePrice}
                         onChange={(e) => setPurchasePrice(e.target.value)}
                         placeholder="24.99"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[1fr_auto] gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Series
+                      </label>
+                      <input
+                        value={series}
+                        onChange={(e) => setSeries(e.target.value)}
+                        placeholder="Earthsea Cycle"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                    <div className="w-20">
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Vol.
+                      </label>
+                      <input
+                        type="number"
+                        value={seriesVolume}
+                        onChange={(e) => setSeriesVolume(e.target.value)}
+                        placeholder="1"
                         className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                       />
                     </div>

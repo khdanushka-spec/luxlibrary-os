@@ -57,6 +57,8 @@ export default async function BookDetailPage({
             pages={book.pages || undefined}
             year={book.year || undefined}
             purchasePrice={detail.purchasePrice}
+            series={book.series}
+            seriesVolume={book.seriesVolume}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -160,6 +162,10 @@ export default async function BookDetailPage({
           <h3 className="mb-4 text-sm font-medium text-foreground">Details</h3>
           <dl className="space-y-2.5 text-sm">
             {[
+              [
+                "Series",
+                book.series ? `${book.series}${book.seriesVolume ? ` #${book.seriesVolume}` : ""}` : undefined,
+              ],
               ["Publisher", detail.publisher],
               ["Language", detail.language],
               ["ISBN-13", detail.isbn13],

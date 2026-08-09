@@ -15,6 +15,8 @@ export type BookFormInput = {
   pages?: number | null;
   year?: number | null;
   purchasePrice?: number | null;
+  series?: string;
+  seriesVolume?: number | null;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -39,6 +41,17 @@ async function resolvePublisherId(publisher: string | undefined) {
   return record.id;
 }
 
+async function resolveSeriesId(series: string | undefined) {
+  const name = series?.trim();
+  if (!name) return null;
+  const record = await prisma.series.upsert({
+    where: { name },
+    update: {},
+    create: { name },
+  });
+  return record.id;
+}
+
 export async function addBook(input: BookFormInput): Promise<BookActionResult> {
   const title = input.title.trim();
   const author = input.author.trim();
@@ -47,7 +60,7 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
     return { ok: false, error: "Title and author are required." };
   }
 
-  const [authorRecord, genreRecord, publisherId] = await Promise.all([
+  const [authorRecord, genreRecord, publisherId, seriesId] = await Promise.all([
     prisma.author.upsert({
       where: { name: author },
       update: {},
@@ -59,6 +72,7 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
       create: { name: input.genre },
     }),
     resolvePublisherId(input.publisher),
+    resolveSeriesId(input.series),
   ]);
 
   try {
@@ -72,6 +86,8 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         pages: input.pages ?? undefined,
         publicationYear: input.year ?? undefined,
         purchasePrice: input.purchasePrice ?? undefined,
+        seriesId: seriesId ?? undefined,
+        volume: seriesId ? input.seriesVolume ?? undefined : undefined,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
@@ -101,7 +117,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     return { ok: false, error: "Title and author are required." };
   }
 
-  const [authorRecord, genreRecord, publisherId] = await Promise.all([
+  const [authorRecord, genreRecord, publisherId, seriesId] = await Promise.all([
     prisma.author.upsert({
       where: { name: author },
       update: {},
@@ -113,6 +129,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
       create: { name: input.genre },
     }),
     resolvePublisherId(input.publisher),
+    resolveSeriesId(input.series),
   ]);
 
   await prisma.bookContributor.deleteMany({ where: { bookId: id } });
@@ -131,6 +148,8 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         pages: input.pages ?? null,
         publicationYear: input.year ?? null,
         purchasePrice: input.purchasePrice ?? null,
+        seriesId,
+        volume: seriesId ? input.seriesVolume ?? null : null,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
