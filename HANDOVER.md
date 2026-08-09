@@ -1,6 +1,12 @@
 # LuxLibrary OS — Handover
 
-**Status (2026-08-09):** Home / marketing page built and verified. Nothing else from the full spec is implemented yet.
+**Status (2026-08-09):** Home / marketing page built, verified, pushed to GitHub, and deployed to Vercel production. Nothing else from the full spec is implemented yet.
+
+## Repo & deployment
+- GitHub: https://github.com/khdanushka-spec/luxlibrary-os (public, under the `khdanushka-spec` account — not `dhanu-af`)
+- Vercel: project `dkns/luxlibrary-os`, prod at **https://luxlibrary-os.vercel.app**, connected to the GitHub repo for auto-deploy on push to `master`
+- Local git identity for this repo only: `Dhanushka` / `khdanushka@gmail.com` (matches `nutriai`'s local config, not global)
+- **Gotcha:** this machine's `gh` CLI has two cached accounts (`dhanu-af`, `khdanushka-spec`) and only one is active at a time. Before pushing, run `gh auth status` to confirm the active account matches the repo owner, `gh auth switch --hostname github.com --user <name>` if not.
 
 ## Stack
 - Next.js 16 (App Router, Turbopack), TypeScript, Tailwind v4
