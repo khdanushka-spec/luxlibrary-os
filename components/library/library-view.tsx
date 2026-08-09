@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { LayoutGrid, List, Search } from "lucide-react";
+import { LayoutGrid, List, Search, Upload } from "lucide-react";
 import { STATUS_FILTERS } from "@/lib/book-status";
 import type { BookStatus, MockBook } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -45,12 +46,21 @@ export function LibraryView({ books }: { books: MockBook[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-foreground">Library</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          {filtered.length.toLocaleString()} of {books.length.toLocaleString()}{" "}
-          books
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl text-foreground">Library</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {filtered.length.toLocaleString()} of {books.length.toLocaleString()}{" "}
+            books
+          </p>
+        </div>
+        <Link
+          href="/library/import"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border/70 px-4 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Upload className="size-3.5" />
+          Import CSV
+        </Link>
       </div>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
