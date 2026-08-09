@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { LayoutGrid, List, Search } from "lucide-react";
 import { STATUS_FILTERS } from "@/lib/book-status";
 import type { BookStatus, MockBook } from "@/lib/mock-data";
@@ -11,9 +12,10 @@ import { BookListRow } from "./book-list-row";
 type SortKey = "title" | "author" | "year" | "pages";
 
 export function LibraryView({ books }: { books: MockBook[] }) {
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [status, setStatus] = useState<BookStatus | "all">("all");
-  const [genre, setGenre] = useState("all");
+  const [genre, setGenre] = useState(searchParams.get("genre") ?? "all");
   const [sortBy, setSortBy] = useState<SortKey>("title");
   const [view, setView] = useState<"grid" | "list">("grid");
 

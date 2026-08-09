@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LibraryView } from "@/components/library/library-view";
 import { MOCK_BOOKS } from "@/lib/mock-data";
 
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function LibraryPage() {
-  return <LibraryView books={MOCK_BOOKS} />;
+  return (
+    <Suspense fallback={null}>
+      <LibraryView books={MOCK_BOOKS} />
+    </Suspense>
+  );
 }

@@ -21,6 +21,15 @@ const SHELF_BY_GENRE: Record<string, string> = {
   "Science Fiction": "B5",
 };
 
+const QUOTE_TEMPLATES = [
+  "The kind of book that rearranges something in you.",
+  "I read the last page and just sat there for a while.",
+  "Every chapter felt like it was written for exactly this moment in my life.",
+  "A sentence I copied into my notes and haven't stopped thinking about since.",
+  "The ending undid me in the best way.",
+  "This is the book I keep pressing into other people's hands.",
+];
+
 function hashCode(input: string) {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
@@ -44,7 +53,7 @@ export function getBookDetail(book: MockBook) {
 
   const favoriteQuote =
     book.rating && book.rating >= 4
-      ? `"The kind of book that rearranges something in you." — a note left on the first read.`
+      ? `"${QUOTE_TEMPLATES[seed % QUOTE_TEMPLATES.length]}" — a note left on the first read.`
       : null;
 
   return {
