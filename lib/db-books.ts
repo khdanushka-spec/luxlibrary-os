@@ -35,6 +35,7 @@ function toMockBook(book: DbBook): MockBook {
     year: book.publicationYear ?? 0,
     series: book.series?.name,
     seriesVolume: book.volume ?? undefined,
+    publisher: book.publisher?.name,
   };
 }
 

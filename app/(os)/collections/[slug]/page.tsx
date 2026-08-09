@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, LayoutGrid } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
 import { getCollection, getCollectionBooks } from "@/lib/collections";
+import { getAllBooksFromDb } from "@/lib/db-books";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -23,7 +26,8 @@ export default async function CollectionDetailPage({
   const collection = getCollection(slug);
   if (!collection) notFound();
 
-  const books = getCollectionBooks(collection);
+  const allBooks = await getAllBooksFromDb();
+  const books = getCollectionBooks(collection, allBooks);
 
   return (
     <div className="flex flex-col gap-6">

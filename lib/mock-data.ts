@@ -113,6 +113,7 @@ export type MockBook = {
   year: number;
   series?: string;
   seriesVolume?: number;
+  publisher?: string;
 };
 
 export const MOCK_BOOKS: MockBook[] = [

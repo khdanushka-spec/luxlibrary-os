@@ -1,13 +1,16 @@
 import { Bookmark } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
-import { MOCK_BOOKS } from "@/lib/mock-data";
+import { getAllBooksFromDb } from "@/lib/db-books";
 
 export const metadata = {
   title: "Wishlist — LuxLibrary OS",
 };
 
-export default function WishlistPage() {
-  const wishlistBooks = MOCK_BOOKS.filter((b) => b.status === "wishlist");
+export const dynamic = "force-dynamic";
+
+export default async function WishlistPage() {
+  const books = await getAllBooksFromDb();
+  const wishlistBooks = books.filter((b) => b.status === "wishlist");
 
   return (
     <div className="flex flex-col gap-6">

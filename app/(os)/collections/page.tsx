@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { LayoutGrid } from "lucide-react";
 import { COLLECTIONS, getCollectionBooks } from "@/lib/collections";
+import { getAllBooksFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
 
 export const metadata = {
   title: "Collections — LuxLibrary OS",
 };
 
-export default function CollectionsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CollectionsPage() {
+  const allBooks = await getAllBooksFromDb();
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -22,7 +26,7 @@ export default function CollectionsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {COLLECTIONS.map((collection) => {
-          const books = getCollectionBooks(collection);
+          const books = getCollectionBooks(collection, allBooks);
           return (
             <Link
               key={collection.slug}

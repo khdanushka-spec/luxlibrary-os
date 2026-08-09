@@ -1,10 +1,14 @@
 import { getBookDetail } from "@/lib/book-detail";
-import { MOCK_BOOKS, type MockBook } from "@/lib/mock-data";
+import type { MockBook } from "@/lib/mock-data";
 
-export function getPublishers() {
+function publisherOf(book: MockBook) {
+  return book.publisher ?? getBookDetail(book).publisher;
+}
+
+export function getPublishers(books: MockBook[]) {
   const map = new Map<string, MockBook[]>();
-  for (const book of MOCK_BOOKS) {
-    const publisher = getBookDetail(book).publisher;
+  for (const book of books) {
+    const publisher = publisherOf(book);
     const existing = map.get(publisher) ?? [];
     existing.push(book);
     map.set(publisher, existing);
@@ -14,8 +18,8 @@ export function getPublishers() {
     .sort((a, b) => b.books.length - a.books.length);
 }
 
-export function getPublisherBooks(slug: string) {
-  const publishers = getPublishers();
+export function getPublisherBooks(slug: string, books: MockBook[]) {
+  const publishers = getPublishers(books);
   return publishers.find(
     (p) => p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === slug
   );

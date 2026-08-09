@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { Gem } from "lucide-react";
+import { getAllBooksFromDb } from "@/lib/db-books";
 import { getSeriesList, seriesSlug } from "@/lib/series";
 
 export const metadata = {
   title: "Series — LuxLibrary OS",
 };
 
-export default function SeriesPage() {
-  const series = getSeriesList();
+export const dynamic = "force-dynamic";
+
+export default async function SeriesPage() {
+  const books = await getAllBooksFromDb();
+  const series = getSeriesList(books);
 
   return (
     <div className="flex flex-col gap-6">

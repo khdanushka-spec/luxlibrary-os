@@ -1,4 +1,4 @@
-import { MOCK_BOOKS, type MockBook } from "@/lib/mock-data";
+import type { MockBook } from "@/lib/mock-data";
 
 export type Collection = {
   slug: string;
@@ -56,6 +56,6 @@ export function getCollection(slug: string) {
   return COLLECTIONS.find((c) => c.slug === slug);
 }
 
-export function getCollectionBooks(collection: Collection) {
-  return MOCK_BOOKS.filter(collection.filter);
+export function getCollectionBooks(collection: Collection, books: MockBook[]) {
+  return books.filter(collection.filter);
 }

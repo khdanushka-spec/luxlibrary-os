@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Tags } from "lucide-react";
-import { MOCK_BOOKS } from "@/lib/mock-data";
+import { getAllBooksFromDb } from "@/lib/db-books";
+import type { MockBook } from "@/lib/mock-data";
 
 export const metadata = {
   title: "Genres — LuxLibrary OS",
 };
 
-function getGenres() {
+export const dynamic = "force-dynamic";
+
+function getGenres(books: MockBook[]) {
   const map = new Map<string, number>();
-  for (const book of MOCK_BOOKS) {
+  for (const book of books) {
     map.set(book.genre, (map.get(book.genre) ?? 0) + 1);
   }
   return Array.from(map.entries())
@@ -16,8 +19,9 @@ function getGenres() {
     .sort((a, b) => b.count - a.count);
 }
 
-export default function GenresPage() {
-  const genres = getGenres();
+export default async function GenresPage() {
+  const books = await getAllBooksFromDb();
+  const genres = getGenres(books);
   const max = Math.max(...genres.map((g) => g.count));
 
   return (

@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Users } from "lucide-react";
-import { MOCK_BOOKS } from "@/lib/mock-data";
+import { getAllBooksFromDb } from "@/lib/db-books";
+import type { MockBook } from "@/lib/mock-data";
 
 export const metadata = {
   title: "Authors — LuxLibrary OS",
 };
 
-function getAuthors() {
+export const dynamic = "force-dynamic";
+
+function getAuthors(books: MockBook[]) {
   const map = new Map<string, { name: string; count: number; genres: Set<string> }>();
-  for (const book of MOCK_BOOKS) {
+  for (const book of books) {
     const entry = map.get(book.author) ?? {
       name: book.author,
       count: 0,
@@ -21,8 +24,9 @@ function getAuthors() {
   return Array.from(map.values()).sort((a, b) => b.count - a.count);
 }
 
-export default function AuthorsPage() {
-  const authors = getAuthors();
+export default async function AuthorsPage() {
+  const books = await getAllBooksFromDb();
+  const authors = getAuthors(books);
 
   return (
     <div className="flex flex-col gap-6">

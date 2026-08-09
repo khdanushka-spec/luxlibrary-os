@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Gem } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
+import { getAllBooksFromDb } from "@/lib/db-books";
 import { getSeriesBySlug } from "@/lib/series";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -10,7 +13,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const series = getSeriesBySlug(slug);
+  const books = await getAllBooksFromDb();
+  const series = getSeriesBySlug(slug, books);
   return { title: series ? `${series.name} — LuxLibrary OS` : "LuxLibrary OS" };
 }
 
@@ -20,7 +24,8 @@ export default async function SeriesDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const series = getSeriesBySlug(slug);
+  const books = await getAllBooksFromDb();
+  const series = getSeriesBySlug(slug, books);
   if (!series) notFound();
 
   return (

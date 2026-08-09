@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { getAllBooksFromDb } from "@/lib/db-books";
 import { getPublishers, publisherSlug } from "@/lib/publishers";
 
 export const metadata = {
   title: "Publishers — LuxLibrary OS",
 };
 
-export default function PublishersPage() {
-  const publishers = getPublishers();
+export const dynamic = "force-dynamic";
+
+export default async function PublishersPage() {
+  const books = await getAllBooksFromDb();
+  const publishers = getPublishers(books);
 
   return (
     <div className="flex flex-col gap-6">
