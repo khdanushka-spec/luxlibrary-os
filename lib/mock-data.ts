@@ -111,6 +111,8 @@ export type MockBook = {
   rating: number | null;
   pages: number;
   year: number;
+  series?: string;
+  seriesVolume?: number;
 };
 
 export const MOCK_BOOKS: MockBook[] = [
@@ -126,9 +128,9 @@ export const MOCK_BOOKS: MockBook[] = [
   { id: "10", title: "Cloud Cuckoo Land", author: "Anthony Doerr", genre: "Literary Fiction", format: "Hardcover", status: "unread", rating: null, pages: 626, year: 2021 },
   { id: "11", title: "The Night Circus", author: "Erin Morgenstern", genre: "Fantasy", format: "Hardcover", status: "unread", rating: null, pages: 512, year: 2011 },
   { id: "12", title: "Quantum: A Guide for the Perplexed", author: "Jim Al-Khalili", genre: "Science", format: "Paperback", status: "unread", rating: null, pages: 256, year: 2003 },
-  { id: "13", title: "The Left Hand of Darkness", author: "Ursula K. Le Guin", genre: "Science Fiction", format: "Paperback", status: "completed", rating: 4, pages: 304, year: 1969 },
-  { id: "14", title: "A Wizard of Earthsea", author: "Ursula K. Le Guin", genre: "Fantasy", format: "Paperback", status: "completed", rating: 5, pages: 183, year: 1968 },
-  { id: "15", title: "The Dispossessed", author: "Ursula K. Le Guin", genre: "Science Fiction", format: "Paperback", status: "unread", rating: null, pages: 341, year: 1974 },
+  { id: "13", title: "The Left Hand of Darkness", author: "Ursula K. Le Guin", genre: "Science Fiction", format: "Paperback", status: "completed", rating: 4, pages: 304, year: 1969, series: "Hainish Cycle", seriesVolume: 4 },
+  { id: "14", title: "A Wizard of Earthsea", author: "Ursula K. Le Guin", genre: "Fantasy", format: "Paperback", status: "completed", rating: 5, pages: 183, year: 1968, series: "Earthsea Cycle", seriesVolume: 1 },
+  { id: "15", title: "The Dispossessed", author: "Ursula K. Le Guin", genre: "Science Fiction", format: "Paperback", status: "unread", rating: null, pages: 341, year: 1974, series: "Hainish Cycle", seriesVolume: 1 },
   { id: "16", title: "Never Let Me Go", author: "Kazuo Ishiguro", genre: "Literary Fiction", format: "Paperback", status: "completed", rating: 5, pages: 288, year: 2005 },
   { id: "17", title: "The Remains of the Day", author: "Kazuo Ishiguro", genre: "Literary Fiction", format: "Hardcover", status: "completed", rating: 4, pages: 258, year: 1989 },
   { id: "18", title: "An Artist of the Floating World", author: "Kazuo Ishiguro", genre: "Literary Fiction", format: "Paperback", status: "unread", rating: null, pages: 206, year: 1986 },

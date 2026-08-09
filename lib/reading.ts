@@ -16,12 +16,17 @@ export function getCurrentlyReading() {
 }
 
 export function getCompletedThisYear() {
+  const today = new Date();
+  const currentMonth = today.getMonth();
   return MOCK_BOOKS.filter((b) => b.status === "completed")
     .map((book) => {
       const seed = hashCode(book.id + "completed");
-      return { book, month: seed % 12 };
+      const month = seed % (currentMonth + 1);
+      const rawDay = 1 + ((seed >> 4) % 28);
+      const day = month === currentMonth ? Math.min(rawDay, today.getDate()) : rawDay;
+      return { book, month, day };
     })
-    .sort((a, b) => b.month - a.month);
+    .sort((a, b) => b.month - a.month || b.day - a.day);
 }
 
 export function getDnfBooks(): MockBook[] {
