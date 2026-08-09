@@ -44,6 +44,22 @@ export async function getAllBooksFromDb(): Promise<MockBook[]> {
   return books.map(toMockBook);
 }
 
+export type LibrarianBook = MockBook & {
+  shelf: string;
+  shelfPosition?: number;
+  aiSummary?: string;
+};
+
+export async function getLibrarianBooksFromDb(): Promise<LibrarianBook[]> {
+  const books = await prisma.book.findMany({ include: bookInclude });
+  return books.map((book) => ({
+    ...toMockBook(book),
+    shelf: book.shelf?.label ?? "Unshelved",
+    shelfPosition: book.shelfPosition ?? undefined,
+    aiSummary: book.aiSummary ?? undefined,
+  }));
+}
+
 export async function getQuotesFromDb(): Promise<
   { book: MockBook; favoriteQuote: string }[]
 > {

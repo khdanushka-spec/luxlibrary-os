@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Bot, Send, Sparkles, User } from "lucide-react";
-import { answerQuery } from "@/lib/ai-librarian";
+import { askLibrarian } from "@/app/(os)/ai/actions";
 import { cn } from "@/lib/utils";
 
 type Message = { role: "user" | "ai"; text: string };
@@ -23,17 +23,25 @@ const INITIAL_MESSAGE: Message = {
 export function AiChat() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
+  const [pending, setPending] = useState(false);
 
-  function send(text: string) {
+  async function send(text: string) {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    const reply = answerQuery(trimmed);
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: trimmed },
-      { role: "ai", text: reply },
-    ]);
+    if (!trimmed || pending) return;
     setInput("");
+    setMessages((prev) => [...prev, { role: "user", text: trimmed }]);
+    setPending(true);
+    try {
+      const reply = await askLibrarian(trimmed);
+      setMessages((prev) => [...prev, { role: "ai", text: reply }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Something went wrong reaching your library. Try again." },
+      ]);
+    } finally {
+      setPending(false);
+    }
   }
 
   function handleSubmit(e: FormEvent) {
@@ -90,6 +98,22 @@ export function AiChat() {
             </div>
           </div>
         ))}
+        {pending && (
+          <div className="flex items-start gap-2.5">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+              <Bot className="size-3.5" />
+            </div>
+            <div className="flex items-center gap-1 rounded-2xl border border-gold/20 bg-gold/[0.06] px-4 py-2.5">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="size-1.5 animate-bounce rounded-full bg-gold"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -97,7 +121,8 @@ export function AiChat() {
           <button
             key={s}
             onClick={() => send(s)}
-            className="rounded-full border border-border/70 px-3.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-gold/40 hover:text-foreground"
+            disabled={pending}
+            className="rounded-full border border-border/70 px-3.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-gold/40 hover:text-foreground disabled:opacity-50"
           >
             {s}
           </button>
@@ -113,7 +138,8 @@ export function AiChat() {
         />
         <button
           type="submit"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gold text-gold-foreground transition-transform hover:scale-[1.05] active:scale-[0.95]"
+          disabled={pending}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gold text-gold-foreground transition-transform hover:scale-[1.05] active:scale-[0.95] disabled:opacity-50"
           aria-label="Send"
         >
           <Send className="size-4" />
