@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, Plus, Upload, X } from "lucide-react";
 import { addBook } from "@/lib/book-actions";
 import { getShelfOptions } from "@/lib/shelf-actions";
+import { compressImageToDataUrl } from "@/lib/image-utils";
 import type { ShelfOption } from "@/lib/db-books";
 
 const GENRE_OPTIONS = [
@@ -57,6 +58,9 @@ export function AddBookDialog() {
   const [isRare, setIsRare] = useState(false);
   const [subtitle, setSubtitle] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [isCompressingCover, setIsCompressingCover] = useState(false);
+  const [coverError, setCoverError] = useState<string | null>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
   const [isbn10, setIsbn10] = useState("");
   const [originalPublicationYear, setOriginalPublicationYear] = useState("");
   const [country, setCountry] = useState("");
@@ -112,6 +116,7 @@ export function AddBookDialog() {
     setIsRare(false);
     setSubtitle("");
     setCoverImageUrl("");
+    setCoverError(null);
     setIsbn10("");
     setOriginalPublicationYear("");
     setCountry("");
@@ -126,6 +131,26 @@ export function AddBookDialog() {
     setExternalLink("");
     setShelfId("");
     setShelfPosition("");
+  }
+
+  async function handleCoverFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setCoverError("That file isn't an image.");
+      return;
+    }
+    setCoverError(null);
+    setIsCompressingCover(true);
+    try {
+      const dataUrl = await compressImageToDataUrl(file);
+      setCoverImageUrl(dataUrl);
+    } catch (err) {
+      setCoverError(err instanceof Error ? err.message : "Couldn't process that image.");
+    } finally {
+      setIsCompressingCover(false);
+    }
   }
 
   function handleSubmit(e: FormEvent) {
@@ -271,14 +296,58 @@ export function AddBookDialog() {
 
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Cover image URL
+                      Cover
                     </label>
-                    <input
-                      value={coverImageUrl}
-                      onChange={(e) => setCoverImageUrl(e.target.value)}
-                      placeholder="https://…"
-                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
-                    />
+                    <div className="flex items-center gap-3">
+                      {coverImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- data: URIs from client-side upload, not an optimizable remote src
+                        <img
+                          src={coverImageUrl}
+                          alt="Cover preview"
+                          className="h-14 w-10 shrink-0 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="h-14 w-10 shrink-0 rounded bg-secondary/60" />
+                      )}
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            ref={coverFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverFileChange}
+                            className="hidden"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => coverFileInputRef.current?.click()}
+                            disabled={isCompressingCover}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border/70 px-3 text-xs text-foreground transition-colors hover:border-gold/40 disabled:opacity-60"
+                          >
+                            <Upload className="size-3.5" />
+                            {isCompressingCover ? "Uploading…" : "Upload photo"}
+                          </button>
+                          {coverImageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setCoverImageUrl("")}
+                              className="text-xs text-muted-foreground transition-colors hover:text-rose-400"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          value={coverImageUrl}
+                          onChange={(e) => setCoverImageUrl(e.target.value)}
+                          placeholder="or paste a cover image URL"
+                          className="h-8 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    {coverError && (
+                      <p className="mt-1.5 text-[0.7rem] text-rose-400">{coverError}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
