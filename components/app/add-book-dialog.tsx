@@ -48,6 +48,9 @@ export function AddBookDialog() {
   const [condition, setCondition] = useState("");
   const [language, setLanguage] = useState("");
   const [readingProgressPercent, setReadingProgressPercent] = useState("");
+  const [tags, setTags] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isRare, setIsRare] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -77,6 +80,9 @@ export function AddBookDialog() {
     setCondition("");
     setLanguage("");
     setReadingProgressPercent("");
+    setTags("");
+    setIsFavorite(false);
+    setIsRare(false);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -101,6 +107,9 @@ export function AddBookDialog() {
         condition: condition || undefined,
         language: language.trim() || undefined,
         readingProgressPercent: readingProgressPercent ? Number(readingProgressPercent) : null,
+        tags: tags.trim() || undefined,
+        isFavorite,
+        isRare,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -371,6 +380,42 @@ export function AddBookDialog() {
                         className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Tags
+                    </label>
+                    <input
+                      value={tags}
+                      onChange={(e) => setTags(e.target.value)}
+                      placeholder="signed, gift, book club"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                    <p className="mt-1 text-[0.7rem] text-muted-foreground">
+                      Comma-separated
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-5">
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={isFavorite}
+                        onChange={(e) => setIsFavorite(e.target.checked)}
+                        className="size-4 accent-gold"
+                      />
+                      Favorite
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={isRare}
+                        onChange={(e) => setIsRare(e.target.checked)}
+                        className="size-4 accent-gold"
+                      />
+                      Rare / special edition
+                    </label>
                   </div>
                 </div>
 

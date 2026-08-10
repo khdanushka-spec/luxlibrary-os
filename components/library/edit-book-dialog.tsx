@@ -57,6 +57,9 @@ type EditBookDialogProps = {
   currentMarketValue?: number;
   insuranceValue?: number;
   readingProgressPercent?: number;
+  tags?: string;
+  isFavorite?: boolean;
+  isRare?: boolean;
 };
 
 export function EditBookDialog({
@@ -83,6 +86,9 @@ export function EditBookDialog({
   currentMarketValue: initialCurrentMarketValue,
   insuranceValue: initialInsuranceValue,
   readingProgressPercent: initialReadingProgressPercent,
+  tags: initialTags,
+  isFavorite: initialIsFavorite,
+  isRare: initialIsRare,
 }: EditBookDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -121,6 +127,9 @@ export function EditBookDialog({
   const [readingProgressPercent, setReadingProgressPercent] = useState(
     initialReadingProgressPercent ? String(initialReadingProgressPercent) : ""
   );
+  const [tags, setTags] = useState(initialTags ?? "");
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite ?? false);
+  const [isRare, setIsRare] = useState(initialIsRare ?? false);
 
   useEffect(() => {
     if (!open) return;
@@ -160,6 +169,9 @@ export function EditBookDialog({
         currentMarketValue: currentMarketValue ? Number(currentMarketValue) : null,
         insuranceValue: insuranceValue ? Number(insuranceValue) : null,
         readingProgressPercent: readingProgressPercent ? Number(readingProgressPercent) : null,
+        tags: tags.trim() || undefined,
+        isFavorite,
+        isRare,
       });
       if (result.ok) {
         setOpen(false);
@@ -500,6 +512,42 @@ export function EditBookDialog({
                     placeholder="Edition details, where you found it, anything else worth remembering"
                     className="w-full resize-none rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                   />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Tags
+                  </label>
+                  <input
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="signed, gift, book club"
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                  <p className="mt-1 text-[0.7rem] text-muted-foreground">
+                    Comma-separated
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-5">
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={isFavorite}
+                      onChange={(e) => setIsFavorite(e.target.checked)}
+                      className="size-4 accent-gold"
+                    />
+                    Favorite
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={isRare}
+                      onChange={(e) => setIsRare(e.target.checked)}
+                      className="size-4 accent-gold"
+                    />
+                    Rare / special edition
+                  </label>
                 </div>
               </div>
 

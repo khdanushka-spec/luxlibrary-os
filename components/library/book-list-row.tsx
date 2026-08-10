@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { STATUS_CONFIG } from "@/lib/book-status";
 import { coverGradient, type MockBook } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -19,8 +19,11 @@ export function BookListRow({ book, index }: { book: MockBook; index: number }) 
         )}
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">
-          {book.title}
+        <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
+          {book.isFavorite && (
+            <Heart className="size-3 shrink-0 fill-rose-400 text-rose-400" />
+          )}
+          <span className="truncate">{book.title}</span>
         </p>
         <p className="truncate text-xs text-muted-foreground">
           {book.author} · {book.genre} · {book.year}

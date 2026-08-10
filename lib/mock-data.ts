@@ -46,6 +46,8 @@ export type MockBook = {
   readingProgressPercent?: number;
   readingStartedAt?: string;
   completedAt?: string;
+  isFavorite?: boolean;
+  isRare?: boolean;
 };
 
 export const MOCK_BOOKS: MockBook[] = [

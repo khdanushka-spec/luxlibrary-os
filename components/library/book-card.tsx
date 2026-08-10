@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { STATUS_CONFIG } from "@/lib/book-status";
 import { coverGradient, type MockBook } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,9 @@ export function BookCard({ book, index }: { book: MockBook; index: number }) {
         >
           {status.label}
         </span>
+        {book.isFavorite && (
+          <Heart className="absolute left-2 top-2 size-3.5 fill-rose-400 text-rose-400 drop-shadow" />
+        )}
       </div>
       <p className="mt-2.5 truncate text-sm font-medium text-foreground">
         {book.title}

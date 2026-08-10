@@ -15,6 +15,12 @@ export const COLLECTIONS: Collection[] = [
     filter: (b) => b.rating === 5,
   },
   {
+    slug: "favorites",
+    title: "Favorites",
+    description: "Books you've flagged as favorites.",
+    filter: (b) => b.isFavorite === true,
+  },
+  {
     slug: "currently-reading",
     title: "Currently Reading",
     description: "What's open on your nightstand right now.",
@@ -36,7 +42,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "rare-editions",
     title: "Rare & Leather-Bound",
     description: "The special editions on your shelves.",
-    filter: (b) => b.format === "Leather",
+    filter: (b) => b.format === "Leather" || b.isRare === true,
   },
   {
     slug: "this-decade",

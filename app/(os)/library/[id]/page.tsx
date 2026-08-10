@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, MapPin, Quote, Sparkles, Star, Tag } from "lucide-react";
+import { ArrowLeft, BookOpen, Gem, Heart, MapPin, Quote, Sparkles, Star, Tag } from "lucide-react";
 import { DeleteBookButton } from "@/components/library/delete-book-button";
 import { EditBookDialog } from "@/components/library/edit-book-dialog";
 import { hashCode } from "@/lib/book-detail";
@@ -68,6 +68,9 @@ export default async function BookDetailPage({
             currentMarketValue={detail.currentMarketValue}
             insuranceValue={detail.insuranceValue}
             readingProgressPercent={book.readingProgressPercent}
+            tags={detail.tags.join(", ")}
+            isFavorite={book.isFavorite}
+            isRare={book.isRare}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -95,17 +98,33 @@ export default async function BookDetailPage({
           </h1>
           <p className="mt-1.5 text-muted-foreground">{book.author}</p>
 
-          {book.rating && (
-            <div className="mt-3 flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={cn(
-                    "size-4",
-                    i < book.rating! ? "fill-gold text-gold" : "text-border"
-                  )}
-                />
-              ))}
+          {(book.rating || book.isFavorite || book.isRare) && (
+            <div className="mt-3 flex items-center gap-3">
+              {book.rating && (
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "size-4",
+                        i < book.rating! ? "fill-gold text-gold" : "text-border"
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+              {book.isFavorite && (
+                <span className="flex items-center gap-1 text-xs text-rose-400">
+                  <Heart className="size-3.5 fill-rose-400" />
+                  Favorite
+                </span>
+              )}
+              {book.isRare && (
+                <span className="flex items-center gap-1 text-xs text-gold">
+                  <Gem className="size-3.5" />
+                  Rare
+                </span>
+              )}
             </div>
           )}
 
@@ -252,16 +271,22 @@ export default async function BookDetailPage({
             <Tag className="size-4 text-gold" />
             Tags
           </h3>
-          <div className="flex flex-wrap gap-2">
-            {detail.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          {detail.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {detail.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              No tags yet — add some from Edit.
+            </p>
+          )}
         </div>
       </div>
     </div>

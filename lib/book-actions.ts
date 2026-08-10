@@ -27,6 +27,9 @@ export type BookFormInput = {
   currentMarketValue?: number | null;
   insuranceValue?: number | null;
   readingProgressPercent?: number | null;
+  tags?: string;
+  isFavorite?: boolean;
+  isRare?: boolean;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -53,6 +56,18 @@ export async function resolveSeriesId(series: string | undefined) {
   return record.id;
 }
 
+async function resolveTagIds(tags: string | undefined): Promise<string[]> {
+  const names = (tags ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (names.length === 0) return [];
+  const records = await Promise.all(
+    names.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } }))
+  );
+  return records.map((r) => r.id);
+}
+
 export async function addBook(input: BookFormInput): Promise<BookActionResult> {
   const title = input.title.trim();
   const author = input.author.trim();
@@ -61,7 +76,7 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
     return { ok: false, error: "Title and author are required." };
   }
 
-  const [authorRecord, genreRecord, publisherId, seriesId] = await Promise.all([
+  const [authorRecord, genreRecord, publisherId, seriesId, tagIds] = await Promise.all([
     prisma.author.upsert({
       where: { name: author },
       update: {},
@@ -74,6 +89,7 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
     }),
     resolvePublisherId(input.publisher),
     resolveSeriesId(input.series),
+    resolveTagIds(input.tags),
   ]);
 
   const readingStatus = input.status.toUpperCase() as ReadingStatus;
@@ -101,11 +117,16 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         purchaseSeller: input.purchaseSeller?.trim() || undefined,
         currentMarketValue: input.currentMarketValue ?? undefined,
         insuranceValue: input.insuranceValue ?? undefined,
+        isFavorite: input.isFavorite ?? false,
+        isRare: input.isRare ?? false,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
         genres: {
           create: { genreId: genreRecord.id },
+        },
+        tags: {
+          create: tagIds.map((tagId) => ({ tagId })),
         },
       },
     });
@@ -134,7 +155,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     return { ok: false, error: "Title and author are required." };
   }
 
-  const [authorRecord, genreRecord, publisherId, seriesId] = await Promise.all([
+  const [authorRecord, genreRecord, publisherId, seriesId, tagIds] = await Promise.all([
     prisma.author.upsert({
       where: { name: author },
       update: {},
@@ -147,6 +168,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     }),
     resolvePublisherId(input.publisher),
     resolveSeriesId(input.series),
+    resolveTagIds(input.tags),
   ]);
 
   const existing = await prisma.book.findUnique({
@@ -158,6 +180,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
 
   await prisma.bookContributor.deleteMany({ where: { bookId: id } });
   await prisma.bookGenre.deleteMany({ where: { bookId: id } });
+  await prisma.bookTag.deleteMany({ where: { bookId: id } });
 
   try {
     await prisma.book.update({
@@ -184,11 +207,16 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         purchaseSeller: input.purchaseSeller?.trim() || null,
         currentMarketValue: input.currentMarketValue ?? null,
         insuranceValue: input.insuranceValue ?? null,
+        isFavorite: input.isFavorite ?? false,
+        isRare: input.isRare ?? false,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
         genres: {
           create: { genreId: genreRecord.id },
+        },
+        tags: {
+          create: tagIds.map((tagId) => ({ tagId })),
         },
       },
     });

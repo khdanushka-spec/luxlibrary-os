@@ -20,6 +20,7 @@ const bookInclude = {
   series: true,
   shelf: true,
   readingSessions: { orderBy: { startedAt: "desc" as const }, take: 1 },
+  tags: { include: { tag: true } },
 } as const;
 
 type DbBook = Awaited<ReturnType<typeof prisma.book.findFirstOrThrow<{ include: typeof bookInclude }>>>;
@@ -43,6 +44,8 @@ function toMockBook(book: DbBook): MockBook {
     readingStartedAt:
       latestSession && !latestSession.endedAt ? latestSession.startedAt.toISOString() : undefined,
     completedAt: latestSession?.endedAt ? latestSession.endedAt.toISOString() : undefined,
+    isFavorite: book.isFavorite || undefined,
+    isRare: book.isRare || undefined,
   };
 }
 
@@ -197,10 +200,45 @@ export async function getBookDetailFromDb(id: string) {
     summary: book.summary ?? undefined,
     aiSummary: book.aiSummary ?? undefined,
     favoriteQuote: book.quotes[0]?.text ?? null,
-    tags: [
-      book.genres[0]?.genre.name,
-      toTitleCase(book.format),
-      book.publicationYear ? `${Math.floor(book.publicationYear / 10) * 10}s` : undefined,
-    ].filter((t): t is string => Boolean(t)),
+    tags: book.tags.map((t) => t.tag.name),
   };
+}
+
+export type ShelfMapEntry = {
+  id: string;
+  label: string;
+  room: string;
+  capacity?: number;
+  books: MockBook[];
+};
+
+export async function getShelfMapFromDb(): Promise<ShelfMapEntry[]> {
+  const shelves = await prisma.shelf.findMany({
+    include: { books: { include: bookInclude, orderBy: { shelfPosition: "asc" } } },
+    orderBy: [{ room: "asc" }, { label: "asc" }],
+  });
+
+  const entries: ShelfMapEntry[] = shelves.map((shelf) => ({
+    id: shelf.id,
+    label: shelf.label,
+    room: shelf.room ?? "Unassigned",
+    capacity: shelf.capacity ?? undefined,
+    books: shelf.books.map(toMockBook),
+  }));
+
+  const unshelvedBooks = await prisma.book.findMany({
+    where: { shelfId: null },
+    include: bookInclude,
+  });
+
+  if (unshelvedBooks.length > 0) {
+    entries.push({
+      id: "unshelved",
+      label: "Unshelved",
+      room: "Unassigned",
+      books: unshelvedBooks.map(toMockBook),
+    });
+  }
+
+  return entries;
 }
