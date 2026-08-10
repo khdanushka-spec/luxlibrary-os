@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Tags } from "lucide-react";
 import { getAllBooksFromDb } from "@/lib/db-books";
 import type { MockBook } from "@/lib/mock-data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Genres — LuxLibrary OS",
@@ -20,7 +21,8 @@ function getGenres(books: MockBook[]) {
 }
 
 export default async function GenresPage() {
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const genres = getGenres(books);
   const max = Math.max(...genres.map((g) => g.count));
 

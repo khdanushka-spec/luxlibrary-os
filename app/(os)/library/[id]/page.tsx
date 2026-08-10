@@ -8,6 +8,7 @@ import { STATUS_CONFIG } from "@/lib/book-status";
 import { getBookDetailFromDb, getShelfOptionsFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +28,13 @@ export default async function BookDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [detail, shelves] = await Promise.all([getBookDetailFromDb(id), getShelfOptionsFromDb()]);
+  const user = (await getCurrentUser())!;
+  const [detail, shelves] = await Promise.all([
+    getBookDetailFromDb(id),
+    getShelfOptionsFromDb(user.id),
+  ]);
   if (!detail) notFound();
+  if (detail.userId !== user.id && user.role !== "SUPER_ADMIN") notFound();
 
   const { book } = detail;
   const status = STATUS_CONFIG[book.status];
@@ -86,6 +92,7 @@ export default async function BookDetailPage({
             shelfId={detail.shelfId}
             shelfPosition={detail.shelfPosition}
             shelves={shelves}
+            currentPage={detail.currentPage}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -190,7 +197,12 @@ export default async function BookDetailPage({
           {book.status === "reading" && book.readingProgressPercent !== undefined && (
             <div className="mt-5 max-w-xs">
               <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Reading progress</span>
+                <span>
+                  Reading progress
+                  {detail.currentPage && book.pages
+                    ? ` — page ${detail.currentPage} of ${book.pages}`
+                    : ""}
+                </span>
                 <span>{book.readingProgressPercent}%</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">

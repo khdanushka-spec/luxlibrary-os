@@ -8,7 +8,7 @@ import { requireApprovedUser } from "@/lib/auth";
 export async function getShelfOptions(): Promise<ShelfOption[]> {
   const user = await requireApprovedUser();
   if (!user) return [];
-  return getShelfOptionsFromDb();
+  return getShelfOptionsFromDb(user.id);
 }
 
 export type ShelfFormInput = {
@@ -30,6 +30,7 @@ export async function addShelf(input: ShelfFormInput): Promise<ShelfActionResult
 
   const shelf = await prisma.shelf.create({
     data: {
+      userId: user.id,
       label,
       room: input.room?.trim() || undefined,
       capacity: input.capacity ?? undefined,
@@ -44,6 +45,14 @@ export async function addShelf(input: ShelfFormInput): Promise<ShelfActionResult
 export async function deleteShelf(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await requireApprovedUser();
   if (!user) return { ok: false, error: "You must be signed in to do that." };
+
+  const existing = await prisma.shelf.findUnique({ where: { id }, select: { userId: true } });
+  if (!existing) {
+    return { ok: false, error: "Shelf not found." };
+  }
+  if (existing.userId !== user.id && user.role !== "SUPER_ADMIN") {
+    return { ok: false, error: "You don't have permission to delete this shelf." };
+  }
 
   const bookCount = await prisma.book.count({ where: { shelfId: id } });
   if (bookCount > 0) {

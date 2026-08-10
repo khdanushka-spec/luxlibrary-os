@@ -7,8 +7,9 @@ import {
   getTopAuthorsFromDb,
   getTopGenresFromDb,
 } from "@/lib/db-books";
-import { MOCK_OWNER_NAME, MOCK_STATS } from "@/lib/mock-data";
+import { MOCK_STATS } from "@/lib/mock-data";
 import { getCompletedThisYear } from "@/lib/reading";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Profile — LuxLibrary OS",
@@ -17,12 +18,13 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
+  const user = (await getCurrentUser())!;
   const [books, stats, collectingSince, topGenres, topAuthors] = await Promise.all([
-    getAllBooksFromDb(),
-    getDashboardStatsFromDb(),
-    getCollectingSinceFromDb(),
-    getTopGenresFromDb(1),
-    getTopAuthorsFromDb(1),
+    getAllBooksFromDb(user.id),
+    getDashboardStatsFromDb(user.id),
+    getCollectingSinceFromDb(user.id),
+    getTopGenresFromDb(user.id, 1),
+    getTopAuthorsFromDb(user.id, 1),
   ]);
 
   const completedThisYear = getCompletedThisYear(books);
@@ -31,7 +33,8 @@ export default async function ProfilePage() {
     ? ratedBooks.reduce((sum, b) => sum + (b.rating ?? 0), 0) / ratedBooks.length
     : null;
 
-  const initials = MOCK_OWNER_NAME.split(" ")
+  const initials = user.name
+    .split(" ")
     .map((p) => p[0])
     .slice(0, 2)
     .join("");
@@ -50,7 +53,8 @@ export default async function ProfilePage() {
           {initials}
         </div>
         <div>
-          <h1 className="font-display text-2xl text-foreground">{MOCK_OWNER_NAME}</h1>
+          <h1 className="font-display text-2xl text-foreground">{user.name}</h1>
+          <p className="text-sm text-muted-foreground">{user.email}</p>
           {collectingSince && (
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Calendar className="size-3.5" />

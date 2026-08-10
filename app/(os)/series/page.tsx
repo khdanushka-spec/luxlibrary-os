@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Gem } from "lucide-react";
 import { getAllBooksFromDb } from "@/lib/db-books";
 import { getSeriesList, seriesSlug } from "@/lib/series";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Series — LuxLibrary OS",
@@ -10,7 +11,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function SeriesPage() {
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const series = getSeriesList(books);
 
   return (

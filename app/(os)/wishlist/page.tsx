@@ -1,6 +1,7 @@
 import { Bookmark } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
 import { getAllBooksFromDb } from "@/lib/db-books";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Wishlist — LuxLibrary OS",
@@ -9,7 +10,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function WishlistPage() {
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const wishlistBooks = books.filter((b) => b.status === "wishlist");
 
   return (

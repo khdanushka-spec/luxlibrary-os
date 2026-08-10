@@ -52,6 +52,7 @@ type EditBookDialogProps = {
   seriesVolume?: number;
   condition?: string;
   language?: string;
+  currentPage?: number;
   personalReview?: string;
   personalNotes?: string;
   purchaseDate?: string;
@@ -96,6 +97,7 @@ export function EditBookDialog({
   seriesVolume: initialSeriesVolume,
   condition: initialCondition,
   language: initialLanguage,
+  currentPage: initialCurrentPage,
   personalReview: initialPersonalReview,
   personalNotes: initialPersonalNotes,
   purchaseDate: initialPurchaseDate,
@@ -146,6 +148,9 @@ export function EditBookDialog({
   );
   const [condition, setCondition] = useState(initialCondition ?? "");
   const [language, setLanguage] = useState(initialLanguage ?? "");
+  const [currentPage, setCurrentPage] = useState(
+    initialCurrentPage ? String(initialCurrentPage) : ""
+  );
   const [personalReview, setPersonalReview] = useState(initialPersonalReview ?? "");
   const [personalNotes, setPersonalNotes] = useState(initialPersonalNotes ?? "");
   const [purchaseDate, setPurchaseDate] = useState(initialPurchaseDate ?? "");
@@ -155,9 +160,6 @@ export function EditBookDialog({
   );
   const [insuranceValue, setInsuranceValue] = useState(
     initialInsuranceValue ? String(initialInsuranceValue) : ""
-  );
-  const [readingProgressPercent, setReadingProgressPercent] = useState(
-    initialReadingProgressPercent ? String(initialReadingProgressPercent) : ""
   );
   const [tags, setTags] = useState(initialTags ?? "");
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite ?? false);
@@ -214,13 +216,14 @@ export function EditBookDialog({
         seriesVolume: seriesVolume ? Number(seriesVolume) : null,
         condition: condition || undefined,
         language: language.trim() || undefined,
+        currentPage: currentPage ? Number(currentPage) : null,
         personalReview: personalReview.trim() || undefined,
         personalNotes: personalNotes.trim() || undefined,
         purchaseDate: purchaseDate || undefined,
         purchaseSeller: purchaseSeller.trim() || undefined,
         currentMarketValue: currentMarketValue ? Number(currentMarketValue) : null,
         insuranceValue: insuranceValue ? Number(insuranceValue) : null,
-        readingProgressPercent: readingProgressPercent ? Number(readingProgressPercent) : null,
+        readingProgressPercent: initialReadingProgressPercent ?? null,
         tags: tags.trim() || undefined,
         isFavorite,
         isRare,
@@ -383,16 +386,22 @@ export function EditBookDialog({
                 {status === "reading" && (
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Progress ({readingProgressPercent || 0}%)
+                      Current page{pages ? ` (of ${pages})` : ""}
                     </label>
                     <input
-                      type="range"
+                      type="number"
                       min={0}
-                      max={100}
-                      value={readingProgressPercent || 0}
-                      onChange={(e) => setReadingProgressPercent(e.target.value)}
-                      className="w-full accent-gold"
+                      max={pages ? Number(pages) : undefined}
+                      value={currentPage}
+                      onChange={(e) => setCurrentPage(e.target.value)}
+                      placeholder="120"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
                     />
+                    {!pages && (
+                      <p className="mt-1 text-[0.7rem] text-muted-foreground">
+                        Add a page count above to compute progress automatically.
+                      </p>
+                    )}
                   </div>
                 )}
 

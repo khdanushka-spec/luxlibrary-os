@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Users } from "lucide-react";
 import { getAllBooksFromDb } from "@/lib/db-books";
 import type { MockBook } from "@/lib/mock-data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Authors — LuxLibrary OS",
@@ -25,7 +26,8 @@ function getAuthors(books: MockBook[]) {
 }
 
 export default async function AuthorsPage() {
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const authors = getAuthors(books);
 
   return (

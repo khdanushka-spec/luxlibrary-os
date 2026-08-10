@@ -16,6 +16,7 @@ import {
   getTopGenresFromDb,
 } from "@/lib/db-books";
 import { getCompletedThisYear, getCurrentlyReading } from "@/lib/reading";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Home — LuxLibrary OS",
@@ -24,12 +25,13 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const user = (await getCurrentUser())!;
   const [books, stats, recentlyAdded, topGenres, topAuthors] = await Promise.all([
-    getAllBooksFromDb(),
-    getDashboardStatsFromDb(),
-    getRecentlyAddedFromDb(),
-    getTopGenresFromDb(),
-    getTopAuthorsFromDb(),
+    getAllBooksFromDb(user.id),
+    getDashboardStatsFromDb(user.id),
+    getRecentlyAddedFromDb(user.id),
+    getTopGenresFromDb(user.id),
+    getTopAuthorsFromDb(user.id),
   ]);
 
   const currentlyReading = getCurrentlyReading(books);

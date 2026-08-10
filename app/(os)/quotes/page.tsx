@@ -3,6 +3,7 @@ import { Quote as QuoteIcon } from "lucide-react";
 import { AddQuoteDialog } from "@/components/quotes/add-quote-dialog";
 import { DeleteQuoteButton } from "@/components/quotes/delete-quote-button";
 import { getAllBooksFromDb, getQuotesFromDb } from "@/lib/db-books";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Quotes — LuxLibrary OS",
@@ -11,7 +12,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function QuotesPage() {
-  const [quotes, books] = await Promise.all([getQuotesFromDb(), getAllBooksFromDb()]);
+  const user = (await getCurrentUser())!;
+  const [quotes, books] = await Promise.all([getQuotesFromDb(user.id), getAllBooksFromDb(user.id)]);
 
   return (
     <div className="flex flex-col gap-6">

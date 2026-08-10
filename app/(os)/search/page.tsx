@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Search as SearchIcon, User as UserIcon } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
 import { getAllBooksFromDb, searchQuotesFromDb } from "@/lib/db-books";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams;
   const query = (q ?? "").trim().toLowerCase();
+  const user = (await getCurrentUser())!;
 
   if (!query) {
     return (
@@ -37,7 +39,7 @@ export default async function SearchPage({
     );
   }
 
-  const allBooks = await getAllBooksFromDb();
+  const allBooks = await getAllBooksFromDb(user.id);
 
   const matchingBooks = allBooks.filter(
     (b) =>
@@ -54,7 +56,7 @@ export default async function SearchPage({
     ).values()
   );
 
-  const matchingQuotes = await searchQuotesFromDb(query);
+  const matchingQuotes = await searchQuotesFromDb(user.id, query);
 
   const totalResults =
     matchingBooks.length + matchingAuthors.length + matchingQuotes.length;

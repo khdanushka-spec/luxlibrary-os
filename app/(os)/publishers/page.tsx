@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { getAllBooksFromDb } from "@/lib/db-books";
 import { getPublishers, publisherSlug } from "@/lib/publishers";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Publishers — LuxLibrary OS",
@@ -10,7 +11,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PublishersPage() {
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const publishers = getPublishers(books);
 
   return (

@@ -62,6 +62,9 @@ model User {
   approvedById String?
 
   sessions Session[]
+  books    Book[]
+  shelves  Shelf[]
+  notes    Note[]
 }
 
 model Session {
@@ -76,7 +79,10 @@ model Session {
 }
 
 model Book {
-  id                      String        @id @default(cuid())
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   title                   String
   subtitle                String?
   seriesId                String?
@@ -87,7 +93,7 @@ model Book {
   publicationYear         Int?
   originalPublicationYear Int?
   isbn10                  String?
-  isbn13                  String?       @unique
+  isbn13                  String?
   language                String?
   country                 String?
   pages                   Int?
@@ -116,7 +122,7 @@ model Book {
   shelfId       String?
   shelf         Shelf?  @relation(fields: [shelfId], references: [id])
   shelfPosition Int?
-  qrCode        String? @unique
+  qrCode        String?
 
   summary          String? @db.Text
   aiSummary        String? @db.Text
@@ -124,6 +130,7 @@ model Book {
   personalNotes    String? @db.Text
 
   readingStatus          ReadingStatus @default(UNREAD)
+  currentPage            Int?
   readingProgressPercent Int           @default(0)
   rating                 Int?
   isFavorite             Boolean       @default(false)
@@ -139,8 +146,11 @@ model Book {
   notes           Note[]
   readingSessions ReadingSession[]
 
+  @@unique([userId, isbn13])
+  @@unique([userId, qrCode])
   @@index([readingStatus])
   @@index([shelfId])
+  @@index([userId])
 }
 
 model Author {
@@ -209,12 +219,16 @@ model BookTag {
 
 model Shelf {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   label     String
   room      String?
   capacity  Int?
   createdAt DateTime @default(now())
 
   books Book[]
+
+  @@index([userId])
 }
 
 model Quote {
@@ -228,12 +242,16 @@ model Quote {
 
 model Note {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookId    String?
   book      Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
   title     String?
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model ReadingSession {

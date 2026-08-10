@@ -52,8 +52,8 @@ function toMockBook(book: DbBook): MockBook {
   };
 }
 
-export async function getAllBooksFromDb(): Promise<MockBook[]> {
-  const books = await prisma.book.findMany({ include: bookInclude });
+export async function getAllBooksFromDb(userId: string): Promise<MockBook[]> {
+  const books = await prisma.book.findMany({ where: { userId }, include: bookInclude });
   return books.map(toMockBook);
 }
 
@@ -63,8 +63,8 @@ export type LibrarianBook = MockBook & {
   aiSummary?: string;
 };
 
-export async function getLibrarianBooksFromDb(): Promise<LibrarianBook[]> {
-  const books = await prisma.book.findMany({ include: bookInclude });
+export async function getLibrarianBooksFromDb(userId: string): Promise<LibrarianBook[]> {
+  const books = await prisma.book.findMany({ where: { userId }, include: bookInclude });
   return books.map((book) => ({
     ...toMockBook(book),
     shelf: book.shelf?.label ?? "Unshelved",
@@ -73,10 +73,11 @@ export async function getLibrarianBooksFromDb(): Promise<LibrarianBook[]> {
   }));
 }
 
-export async function getQuotesFromDb(): Promise<
-  { id: string; book: MockBook; favoriteQuote: string; pageNumber?: number }[]
-> {
+export async function getQuotesFromDb(
+  userId: string
+): Promise<{ id: string; book: MockBook; favoriteQuote: string; pageNumber?: number }[]> {
   const quotes = await prisma.quote.findMany({
+    where: { book: { userId } },
     include: { book: { include: bookInclude } },
     orderBy: { createdAt: "desc" },
   });
@@ -89,17 +90,19 @@ export async function getQuotesFromDb(): Promise<
 }
 
 export async function searchQuotesFromDb(
+  userId: string,
   query: string
 ): Promise<{ id: string; book: MockBook; favoriteQuote: string }[]> {
   const quotes = await prisma.quote.findMany({
-    where: { text: { contains: query, mode: "insensitive" } },
+    where: { text: { contains: query, mode: "insensitive" }, book: { userId } },
     include: { book: { include: bookInclude } },
   });
   return quotes.map((q) => ({ id: q.id, book: toMockBook(q.book), favoriteQuote: q.text }));
 }
 
-export async function getCollectionValueFromDb() {
+export async function getCollectionValueFromDb(userId: string) {
   const agg = await prisma.book.aggregate({
+    where: { userId },
     _sum: { purchasePrice: true },
     _avg: { purchasePrice: true },
   });
@@ -109,16 +112,16 @@ export async function getCollectionValueFromDb() {
   };
 }
 
-export async function getDashboardStatsFromDb() {
+export async function getDashboardStatsFromDb(userId: string) {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
   const [totalBooks, currentlyReading, addedThisMonth, valueAgg] = await Promise.all([
-    prisma.book.count(),
-    prisma.book.count({ where: { readingStatus: "READING" } }),
-    prisma.book.count({ where: { createdAt: { gte: startOfMonth } } }),
-    prisma.book.aggregate({ _sum: { purchasePrice: true } }),
+    prisma.book.count({ where: { userId } }),
+    prisma.book.count({ where: { userId, readingStatus: "READING" } }),
+    prisma.book.count({ where: { userId, createdAt: { gte: startOfMonth } } }),
+    prisma.book.aggregate({ where: { userId }, _sum: { purchasePrice: true } }),
   ]);
 
   return {
@@ -129,8 +132,9 @@ export async function getDashboardStatsFromDb() {
   };
 }
 
-export async function getRecentlyAddedFromDb(limit = 6): Promise<MockBook[]> {
+export async function getRecentlyAddedFromDb(userId: string, limit = 6): Promise<MockBook[]> {
   const books = await prisma.book.findMany({
+    where: { userId },
     include: bookInclude,
     orderBy: { createdAt: "desc" },
     take: limit,
@@ -138,9 +142,9 @@ export async function getRecentlyAddedFromDb(limit = 6): Promise<MockBook[]> {
   return books.map(toMockBook);
 }
 
-export async function getTopGenresFromDb(limit = 5) {
+export async function getTopGenresFromDb(userId: string, limit = 5) {
   const genres = await prisma.genre.findMany({
-    include: { _count: { select: { books: true } } },
+    include: { _count: { select: { books: { where: { book: { userId } } } } } },
   });
   return genres
     .map((g) => ({ label: g.name, value: g._count.books }))
@@ -149,9 +153,9 @@ export async function getTopGenresFromDb(limit = 5) {
     .slice(0, limit);
 }
 
-export async function getTopAuthorsFromDb(limit = 4) {
+export async function getTopAuthorsFromDb(userId: string, limit = 4) {
   const authors = await prisma.author.findMany({
-    include: { _count: { select: { books: true } } },
+    include: { _count: { select: { books: { where: { book: { userId } } } } } },
   });
   return authors
     .map((a) => ({ name: a.name, books: a._count.books }))
@@ -160,16 +164,17 @@ export async function getTopAuthorsFromDb(limit = 4) {
     .slice(0, limit);
 }
 
-export async function getCollectingSinceFromDb(): Promise<Date | null> {
+export async function getCollectingSinceFromDb(userId: string): Promise<Date | null> {
   const earliest = await prisma.book.findFirst({
+    where: { userId },
     orderBy: { createdAt: "asc" },
     select: { createdAt: true },
   });
   return earliest?.createdAt ?? null;
 }
 
-export async function getNotesFromDb(): Promise<MockNote[]> {
-  const notes = await prisma.note.findMany({ orderBy: { createdAt: "desc" } });
+export async function getNotesFromDb(userId: string): Promise<MockNote[]> {
+  const notes = await prisma.note.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
   return notes.map((n) => ({
     id: n.id,
     bookId: n.bookId ?? "",
@@ -191,6 +196,7 @@ export async function getBookDetailFromDb(id: string) {
 
   return {
     book: toMockBook(book),
+    userId: book.userId,
     publisher: book.publisher?.name ?? "Unknown",
     shelf: book.shelf?.label ?? "Unshelved",
     shelfPosition: book.shelfPosition ?? undefined,
@@ -223,13 +229,15 @@ export async function getBookDetailFromDb(id: string) {
     depthMm: book.depthMm ?? undefined,
     qrCode: book.qrCode ?? undefined,
     shelfId: book.shelfId ?? undefined,
+    currentPage: book.currentPage ?? undefined,
   };
 }
 
 export type ShelfOption = { id: string; label: string; room: string | null };
 
-export async function getShelfOptionsFromDb(): Promise<ShelfOption[]> {
+export async function getShelfOptionsFromDb(userId: string): Promise<ShelfOption[]> {
   return prisma.shelf.findMany({
+    where: { userId },
     select: { id: true, label: true, room: true },
     orderBy: [{ room: "asc" }, { label: "asc" }],
   });
@@ -243,9 +251,10 @@ export type ShelfMapEntry = {
   books: MockBook[];
 };
 
-export async function getShelfMapFromDb(): Promise<ShelfMapEntry[]> {
+export async function getShelfMapFromDb(userId: string): Promise<ShelfMapEntry[]> {
   const shelves = await prisma.shelf.findMany({
-    include: { books: { include: bookInclude, orderBy: { shelfPosition: "asc" } } },
+    where: { userId },
+    include: { books: { where: { userId }, include: bookInclude, orderBy: { shelfPosition: "asc" } } },
     orderBy: [{ room: "asc" }, { label: "asc" }],
   });
 
@@ -258,7 +267,7 @@ export async function getShelfMapFromDb(): Promise<ShelfMapEntry[]> {
   }));
 
   const unshelvedBooks = await prisma.book.findMany({
-    where: { shelfId: null },
+    where: { userId, shelfId: null },
     include: bookInclude,
   });
 
@@ -272,4 +281,38 @@ export async function getShelfMapFromDb(): Promise<ShelfMapEntry[]> {
   }
 
   return entries;
+}
+
+// --- Super Admin only: aggregates across every user's library ---
+
+export type MasterLibraryBook = MockBook & {
+  ownerId: string;
+  ownerName: string;
+  ownerEmail: string;
+};
+
+export async function getMasterLibraryFromDb(): Promise<MasterLibraryBook[]> {
+  const books = await prisma.book.findMany({
+    include: { ...bookInclude, user: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  return books.map((book) => ({
+    ...toMockBook(book),
+    ownerId: book.user.id,
+    ownerName: book.user.name,
+    ownerEmail: book.user.email,
+  }));
+}
+
+export async function getMasterLibraryStatsFromDb() {
+  const [totalBooks, totalMembers, valueAgg] = await Promise.all([
+    prisma.book.count(),
+    prisma.user.count({ where: { status: "APPROVED" } }),
+    prisma.book.aggregate({ _sum: { purchasePrice: true } }),
+  ]);
+  return {
+    totalBooks,
+    totalMembers,
+    collectionValueUsd: valueAgg._sum.purchasePrice ? Number(valueAgg._sum.purchasePrice) : 0,
+  };
 }

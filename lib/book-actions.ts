@@ -27,6 +27,7 @@ export type BookFormInput = {
   purchaseSeller?: string;
   currentMarketValue?: number | null;
   insuranceValue?: number | null;
+  currentPage?: number | null;
   readingProgressPercent?: number | null;
   tags?: string;
   isFavorite?: boolean;
@@ -48,6 +49,19 @@ export type BookFormInput = {
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
+
+function computeReadingProgress(
+  readingStatus: ReadingStatus,
+  currentPage: number | null | undefined,
+  pages: number | null | undefined,
+  manualPercent: number | null | undefined
+): number | undefined {
+  if (readingStatus === "COMPLETED") return 100;
+  if (currentPage && pages && pages > 0) {
+    return Math.min(100, Math.max(0, Math.round((currentPage / pages) * 100)));
+  }
+  return manualPercent ?? undefined;
+}
 
 export async function resolvePublisherId(publisher: string | undefined) {
   const name = publisher?.trim();
@@ -115,11 +129,17 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
   try {
     const book = await prisma.book.create({
       data: {
+        userId: user.id,
         title,
         format: input.format.toUpperCase() as BookFormat,
         readingStatus,
-        readingProgressPercent:
-          readingStatus === "COMPLETED" ? 100 : input.readingProgressPercent ?? undefined,
+        currentPage: readingStatus === "READING" ? input.currentPage ?? undefined : undefined,
+        readingProgressPercent: computeReadingProgress(
+          readingStatus,
+          input.currentPage,
+          input.pages,
+          input.readingProgressPercent
+        ),
         publisherId: publisherId ?? undefined,
         isbn13: input.isbn13?.trim() || undefined,
         pages: input.pages ?? undefined,
@@ -190,6 +210,17 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     return { ok: false, error: "Title and author are required." };
   }
 
+  const existing = await prisma.book.findUnique({
+    where: { id },
+    select: { readingStatus: true, userId: true },
+  });
+  if (!existing) {
+    return { ok: false, error: "Book not found." };
+  }
+  if (existing.userId !== user.id && user.role !== "SUPER_ADMIN") {
+    return { ok: false, error: "You don't have permission to edit this book." };
+  }
+
   const [authorRecord, genreRecord, publisherId, seriesId, tagIds] = await Promise.all([
     prisma.author.upsert({
       where: { name: author },
@@ -206,11 +237,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     resolveTagIds(input.tags),
   ]);
 
-  const existing = await prisma.book.findUnique({
-    where: { id },
-    select: { readingStatus: true },
-  });
-  const previousStatus = existing?.readingStatus;
+  const previousStatus = existing.readingStatus;
   const readingStatus = input.status.toUpperCase() as ReadingStatus;
 
   await prisma.bookContributor.deleteMany({ where: { bookId: id } });
@@ -224,8 +251,13 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         title,
         format: input.format.toUpperCase() as BookFormat,
         readingStatus,
-        readingProgressPercent:
-          readingStatus === "COMPLETED" ? 100 : input.readingProgressPercent ?? undefined,
+        currentPage: readingStatus === "READING" ? input.currentPage ?? null : null,
+        readingProgressPercent: computeReadingProgress(
+          readingStatus,
+          input.currentPage,
+          input.pages,
+          input.readingProgressPercent
+        ),
         rating: input.rating,
         publisherId,
         isbn13: input.isbn13?.trim() || null,
@@ -292,6 +324,14 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
 export async function deleteBook(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await requireApprovedUser();
   if (!user) return { ok: false, error: "You must be signed in to do that." };
+
+  const existing = await prisma.book.findUnique({ where: { id }, select: { userId: true } });
+  if (!existing) {
+    return { ok: false, error: "Book not found." };
+  }
+  if (existing.userId !== user.id && user.role !== "SUPER_ADMIN") {
+    return { ok: false, error: "You don't have permission to delete this book." };
+  }
 
   await prisma.book.delete({ where: { id } });
   revalidatePath("/", "layout");

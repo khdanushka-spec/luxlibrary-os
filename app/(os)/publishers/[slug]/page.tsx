@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import { BookCard } from "@/components/library/book-card";
 import { getAllBooksFromDb } from "@/lib/db-books";
 import { getPublisherBooks } from "@/lib/publishers";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const publisher = getPublisherBooks(slug, books);
   return { title: publisher ? `${publisher.name} — LuxLibrary OS` : "LuxLibrary OS" };
 }
@@ -24,7 +26,8 @@ export default async function PublisherDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
   const publisher = getPublisherBooks(slug, books);
   if (!publisher) notFound();
 

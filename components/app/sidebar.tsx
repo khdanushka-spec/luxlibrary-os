@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { Library, ShieldCheck } from "lucide-react";
 import { LogoMark } from "@/components/home/logo-mark";
 import { NAV_FOOTER_ITEMS, NAV_GROUPS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -52,18 +52,32 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
       <div className="mt-4 space-y-0.5 border-t border-border/60 pt-4">
         {isSuperAdmin && (
-          <Link
-            href="/admin"
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
-              pathname.startsWith("/admin")
-                ? "bg-gold/10 text-gold"
-                : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-            )}
-          >
-            <ShieldCheck className="size-4" />
-            Admin
-          </Link>
+          <>
+            <Link
+              href="/master-library"
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+                pathname.startsWith("/master-library")
+                  ? "bg-gold/10 text-gold"
+                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              )}
+            >
+              <Library className="size-4" />
+              Master Library
+            </Link>
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+                pathname.startsWith("/admin")
+                  ? "bg-gold/10 text-gold"
+                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              )}
+            >
+              <ShieldCheck className="size-4" />
+              Admin
+            </Link>
+          </>
         )}
         {NAV_FOOTER_ITEMS.map((item) => {
           const active = pathname.startsWith(item.href);

@@ -3,6 +3,7 @@ import { NotebookText } from "lucide-react";
 import { AddNoteDialog } from "@/components/notes/add-note-dialog";
 import { DeleteNoteButton } from "@/components/notes/delete-note-button";
 import { getAllBooksFromDb, getNotesFromDb } from "@/lib/db-books";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Notes — LuxLibrary OS",
@@ -11,7 +12,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function NotesPage() {
-  const [books, rawNotes] = await Promise.all([getAllBooksFromDb(), getNotesFromDb()]);
+  const user = (await getCurrentUser())!;
+  const [books, rawNotes] = await Promise.all([
+    getAllBooksFromDb(user.id),
+    getNotesFromDb(user.id),
+  ]);
   const notes = [...rawNotes].sort((a, b) => b.date.localeCompare(a.date));
 
   return (

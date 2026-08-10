@@ -3,6 +3,7 @@ import { LayoutGrid } from "lucide-react";
 import { COLLECTIONS, getCollectionBooks } from "@/lib/collections";
 import { getAllBooksFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Collections — LuxLibrary OS",
@@ -11,7 +12,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function CollectionsPage() {
-  const allBooks = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const allBooks = await getAllBooksFromDb(user.id);
   return (
     <div className="flex flex-col gap-6">
       <div>

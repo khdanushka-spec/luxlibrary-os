@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, CheckCircle2, Clock, NotebookText } from "lucide-react";
 import { getAllBooksFromDb, getNotesFromDb } from "@/lib/db-books";
+import { getCurrentUser } from "@/lib/auth";
 import { getTimelineEvents } from "@/lib/timeline";
 
 export const metadata = {
@@ -16,7 +17,8 @@ const TYPE_CONFIG = {
 };
 
 export default async function TimelinePage() {
-  const [books, notes] = await Promise.all([getAllBooksFromDb(), getNotesFromDb()]);
+  const user = (await getCurrentUser())!;
+  const [books, notes] = await Promise.all([getAllBooksFromDb(user.id), getNotesFromDb(user.id)]);
   const events = getTimelineEvents(books, notes);
 
   return (

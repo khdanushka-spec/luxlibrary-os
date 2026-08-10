@@ -4,6 +4,7 @@ import { BookListRow } from "@/components/library/book-list-row";
 import { ReadingChallengeRing } from "@/components/dashboard/reading-challenge-ring";
 import { coverGradient } from "@/lib/mock-data";
 import { getAllBooksFromDb } from "@/lib/db-books";
+import { getCurrentUser } from "@/lib/auth";
 import {
   getCompletedThisYear,
   getCurrentlyReading,
@@ -19,7 +20,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ReadingPage() {
-  const books = await getAllBooksFromDb();
+  const user = (await getCurrentUser())!;
+  const books = await getAllBooksFromDb(user.id);
 
   const currentlyReading = getCurrentlyReading(books);
   const completedThisYear = getCompletedThisYear(books);

@@ -51,7 +51,10 @@ export async function bulkImportBooks(csvText: string): Promise<BulkImportResult
   let created = 0;
   let updated = 0;
 
-  const shelves = await prisma.shelf.findMany({ select: { id: true, label: true } });
+  const shelves = await prisma.shelf.findMany({
+    where: { userId: user.id },
+    select: { id: true, label: true },
+  });
   const shelfIdByLabel = new Map(shelves.map((s) => [s.label.toLowerCase(), s.id]));
 
   for (const row of rows) {
@@ -71,7 +74,9 @@ export async function bulkImportBooks(csvText: string): Promise<BulkImportResult
           resolvePublisherId(row.publisher),
           resolveSeriesId(row.series),
           resolveTagIds(row.tags),
-          row.isbn13 ? prisma.book.findUnique({ where: { isbn13: row.isbn13 } }) : null,
+          row.isbn13
+            ? prisma.book.findFirst({ where: { userId: user.id, isbn13: row.isbn13 } })
+            : null,
         ]);
 
       const shelfId = row.shelf ? shelfIdByLabel.get(row.shelf.trim().toLowerCase()) : undefined;
@@ -138,6 +143,7 @@ export async function bulkImportBooks(csvText: string): Promise<BulkImportResult
         const book = await prisma.book.create({
           data: {
             ...bookData,
+            userId: user.id,
             readingProgressPercent: readingStatus === "COMPLETED" ? 100 : undefined,
             contributors: { create: { authorId: authorRecord.id, role: "AUTHOR" } },
             genres: { create: { genreId: genreRecord.id } },

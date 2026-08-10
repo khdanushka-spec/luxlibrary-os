@@ -21,8 +21,16 @@ export async function addNote(input: NoteFormInput): Promise<NoteActionResult> {
     return { ok: false, error: "Note content is required." };
   }
 
+  if (input.bookId) {
+    const book = await prisma.book.findUnique({ where: { id: input.bookId }, select: { userId: true } });
+    if (!book || book.userId !== user.id) {
+      return { ok: false, error: "You can only add notes to your own books." };
+    }
+  }
+
   const note = await prisma.note.create({
     data: {
+      userId: user.id,
       title: input.title?.trim() || undefined,
       content,
       bookId: input.bookId || undefined,
@@ -37,6 +45,14 @@ export async function addNote(input: NoteFormInput): Promise<NoteActionResult> {
 export async function deleteNote(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await requireApprovedUser();
   if (!user) return { ok: false, error: "You must be signed in to do that." };
+
+  const existing = await prisma.note.findUnique({ where: { id }, select: { userId: true } });
+  if (!existing) {
+    return { ok: false, error: "Note not found." };
+  }
+  if (existing.userId !== user.id && user.role !== "SUPER_ADMIN") {
+    return { ok: false, error: "You don't have permission to delete this note." };
+  }
 
   await prisma.note.delete({ where: { id } });
   revalidatePath("/notes");

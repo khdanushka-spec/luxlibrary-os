@@ -50,6 +50,7 @@ export function AddBookDialog() {
   const [seriesVolume, setSeriesVolume] = useState("");
   const [condition, setCondition] = useState("");
   const [language, setLanguage] = useState("");
+  const [currentPage, setCurrentPage] = useState("");
   const [readingProgressPercent, setReadingProgressPercent] = useState("");
   const [tags, setTags] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
@@ -102,6 +103,7 @@ export function AddBookDialog() {
     setSeriesVolume("");
     setCondition("");
     setLanguage("");
+    setCurrentPage("");
     setReadingProgressPercent("");
     setTags("");
     setIsFavorite(false);
@@ -143,6 +145,7 @@ export function AddBookDialog() {
         seriesVolume: seriesVolume ? Number(seriesVolume) : null,
         condition: condition || undefined,
         language: language.trim() || undefined,
+        currentPage: currentPage ? Number(currentPage) : null,
         readingProgressPercent: readingProgressPercent ? Number(readingProgressPercent) : null,
         tags: tags.trim() || undefined,
         isFavorite,
@@ -309,16 +312,22 @@ export function AddBookDialog() {
                   {status === "Reading" && (
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                        Progress ({readingProgressPercent || 0}%)
+                        Current page{pages ? ` (of ${pages})` : ""}
                       </label>
                       <input
-                        type="range"
+                        type="number"
                         min={0}
-                        max={100}
-                        value={readingProgressPercent || 0}
-                        onChange={(e) => setReadingProgressPercent(e.target.value)}
-                        className="mt-2 w-full accent-gold"
+                        max={pages ? Number(pages) : undefined}
+                        value={currentPage}
+                        onChange={(e) => setCurrentPage(e.target.value)}
+                        placeholder="120"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                       />
+                      {!pages && (
+                        <p className="mt-1 text-[0.7rem] text-muted-foreground">
+                          Add a page count above to compute progress automatically.
+                        </p>
+                      )}
                     </div>
                   )}
 

@@ -5,6 +5,7 @@ import { DeleteShelfButton } from "@/components/library/delete-shelf-button";
 import { hashCode } from "@/lib/book-detail";
 import { getShelfMapFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Library Map — LuxLibrary OS",
@@ -13,7 +14,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function LibraryMapPage() {
-  const shelves = await getShelfMapFromDb();
+  const user = (await getCurrentUser())!;
+  const shelves = await getShelfMapFromDb(user.id);
   const totalBooks = shelves.reduce((sum, s) => sum + s.books.length, 0);
 
   const rooms = new Map<string, typeof shelves>();
