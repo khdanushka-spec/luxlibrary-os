@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,6 +22,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "BringBooks — The world's most beautiful personal library",
   description:
     "BringBooks is the operating system for passionate book collectors — an elegant, AI-first home for a 2,000+ volume personal library. Your books. Your library. Your world.",
