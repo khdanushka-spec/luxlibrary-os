@@ -8,8 +8,8 @@ import { bulkImportBooks, type BulkImportResult } from "@/lib/import-actions";
 import { CSV_TEMPLATE_HEADER } from "@/lib/csv";
 
 const SAMPLE_CSV = `${CSV_TEMPLATE_HEADER}
-The Midnight Library,,Matt Haig,Fantasy,Paperback,Unread,Canongate,,,2020,,304,9781786892737,,,English,,14.99,,,,,,,,,,
-Circe,,Madeline Miller,Fantasy,Hardcover,Completed,Bloomsbury,,,2018,,393,9781408890042,,,English,,22.50,mythology,true,,,,,,,,`;
+The Midnight Library,,Matt Haig,Fantasy,Paperback,Unread,Canongate,,,2020,,304,9781786892737,,,English,,14.99,,,,,,,,,,,,,
+Circe,,Madeline Miller,Fantasy,Hardcover,Completed,Bloomsbury,,,2018,,393,9781408890042,,,English,,22.50,mythology,true,,,,,,,,,,,`;
 
 export function CsvImportView() {
   const router = useRouter();

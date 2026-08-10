@@ -1,0 +1,162 @@
+"use client";
+
+import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, Plus, X } from "lucide-react";
+import { addQuote } from "@/lib/quote-actions";
+
+type BookOption = { id: string; title: string; author: string };
+
+export function AddQuoteDialog({ books }: { books: BookOption[] }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const [bookId, setBookId] = useState("");
+  const [text, setText] = useState("");
+  const [pageNumber, setPageNumber] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  function close() {
+    setOpen(false);
+    setError(null);
+    setBookId("");
+    setText("");
+    setPageNumber("");
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!bookId || !text.trim()) return;
+    setError(null);
+
+    startTransition(async () => {
+      const result = await addQuote({
+        bookId,
+        text,
+        pageNumber: pageNumber ? Number(pageNumber) : null,
+      });
+      if (result.ok) {
+        close();
+        router.refresh();
+      } else {
+        setError(result.error);
+      }
+    });
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-gold px-4 text-sm font-medium text-gold-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <Plus className="size-4" />
+        Add Quote
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={close}
+          />
+          <div className="glass relative max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border/70 p-6 shadow-2xl">
+            <button
+              onClick={close}
+              className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close"
+            >
+              <X className="size-4" />
+            </button>
+
+            <form onSubmit={handleSubmit}>
+              <h3 className="font-display mb-5 text-xl text-foreground">Add a Quote</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Book *
+                  </label>
+                  <select
+                    required
+                    value={bookId}
+                    onChange={(e) => setBookId(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                  >
+                    <option value="">Select a book…</option>
+                    {books.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.title} — {b.author}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Quote *
+                  </label>
+                  <textarea
+                    required
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    rows={4}
+                    placeholder="The passage worth remembering"
+                    className="w-full resize-none rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Page number
+                  </label>
+                  <input
+                    type="number"
+                    value={pageNumber}
+                    onChange={(e) => setPageNumber(e.target.value)}
+                    placeholder="Optional"
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <p className="mt-4 flex items-center gap-1.5 text-xs text-rose-400">
+                  <AlertCircle className="size-3.5" />
+                  {error}
+                </p>
+              )}
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={close}
+                  className="h-9 rounded-full border border-border/70 px-4 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="h-9 rounded-full bg-gold px-5 text-sm font-medium text-gold-foreground disabled:opacity-60"
+                >
+                  {isPending ? "Saving…" : "Add Quote"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
 import { addBook } from "@/lib/book-actions";
+import { getShelfOptions } from "@/lib/shelf-actions";
+import type { ShelfOption } from "@/lib/db-books";
 
 const GENRE_OPTIONS = [
   "Literary Fiction",
@@ -63,6 +65,14 @@ export function AddBookDialog() {
   const [heightMm, setHeightMm] = useState("");
   const [depthMm, setDepthMm] = useState("");
   const [qrCode, setQrCode] = useState("");
+  const [shelfId, setShelfId] = useState("");
+  const [shelfPosition, setShelfPosition] = useState("");
+  const [shelves, setShelves] = useState<ShelfOption[]>([]);
+
+  useEffect(() => {
+    if (!open || shelves.length > 0) return;
+    getShelfOptions().then(setShelves);
+  }, [open, shelves.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +117,8 @@ export function AddBookDialog() {
     setHeightMm("");
     setDepthMm("");
     setQrCode("");
+    setShelfId("");
+    setShelfPosition("");
   }
 
   function handleSubmit(e: FormEvent) {
@@ -146,6 +158,8 @@ export function AddBookDialog() {
         heightMm: heightMm ? Number(heightMm) : null,
         depthMm: depthMm ? Number(depthMm) : null,
         qrCode: qrCode.trim() || undefined,
+        shelfId: shelfId || undefined,
+        shelfPosition: shelfPosition ? Number(shelfPosition) : null,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -512,6 +526,38 @@ export function AddBookDialog() {
                         onChange={(e) => setLanguage(e.target.value)}
                         placeholder="English"
                         className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[1fr_auto] gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Shelf
+                      </label>
+                      <select
+                        value={shelfId}
+                        onChange={(e) => setShelfId(e.target.value)}
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                      >
+                        <option value="">Unshelved</option>
+                        {shelves.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.room ? `${s.room} — ${s.label}` : s.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-20">
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Position
+                      </label>
+                      <input
+                        type="number"
+                        value={shelfPosition}
+                        onChange={(e) => setShelfPosition(e.target.value)}
+                        disabled={!shelfId}
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none disabled:opacity-50"
                       />
                     </div>
                   </div>

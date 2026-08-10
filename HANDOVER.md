@@ -12,6 +12,8 @@
 - **Reading progress and dates are really tracked.** Moving a book to "reading" opens a `ReadingSession`; moving away closes it; moving to "completed" sets `readingProgressPercent` to 100. `lib/reading.ts` prefers this real data and falls back to a `hashCode()`-derived placeholder only for books that have never gone through a real transition (the original 4 seeded "reading" / 13 seeded "completed" books — verified this never changes their displayed numbers).
 - **Library Map** (`/library-map`): every book grouped by shelf and room, each shelf a row of clickable spine bars with a capacity indicator.
 - **Real freeform Tags**: editable comma-separated field in Add/Edit, shown as real pills on Book Detail (previously that card showed auto-generated genre/format/decade pseudo-tags, which duplicated info already shown as chips near the title).
+- **Shelf assignment is now real.** Add/Edit both have a Shelf select (existing shelves only, no create-a-shelf UI yet) + a Position number field, gated by shelf selection. CSV import gained matching `shelf` (label, case-insensitive lookup, no upsert) and `shelfPosition` columns. Closes a real gap: every book added since the DB migration was permanently "Unshelved," which quietly undermined the Library Map feature for anything not in the original seed. `AddBookDialog` (global, in the topbar) lazy-fetches the shelf list via a small `"use server"` action (`lib/shelf-actions.ts`) only when opened, rather than the layout fetching it on every request — deliberately avoided making the shared `(os)` layout async, which would have forced previously-static pages (`/ai`, `/settings`, `/library/import`) into dynamic rendering too. `EditBookDialog` gets its shelf list as a normal server-fetched prop from Book Detail (already dynamic).
+- **Notes and Quotes are now real CRUD, not read-only seed data.** `/notes` and `/quotes` each have an "Add" dialog and a two-click delete on every card — `lib/note-actions.ts`/`lib/quote-actions.ts`. `Note.title` (schema had it, nothing read/wrote it) is now shown/settable. `Quote` gained a `pageNumber` field in the UI. Fixed a latent bug found while building this: the Quotes grid keyed each card on `book.id`, which would have collided the moment a book had more than one quote (now impossible since quotes were only ever auto-derived one-per-book) — now keys on the quote's own `id`.
 - Production: **https://luxlibrary-os.vercel.app** — Vercel project `dkns/luxlibrary-os`, auto-deploys on push to `master`. GitHub: `khdanushka-spec/luxlibrary-os` (public).
 
 ## Key decisions
@@ -31,6 +33,7 @@
 - **Every DB-backed page needs `export const dynamic = "force-dynamic"`**, or Next bakes it into a static snapshot at build time using whatever was in the DB during `next build`, then never refreshes. Not caught by `tsc` — only visible in `npm run build`'s route table (`○` static vs `ƒ` dynamic).
 - **shadcn/ui here is built on Base UI, not Radix.** Components take a `render` prop instead of `asChild`, and a non-`<button>` render target needs `nativeButton={false}` or Base UI logs a console error.
 - **Prisma 7 moved connection config out of `schema.prisma`** into `prisma.config.ts`; `PrismaClient` requires an explicit driver `adapter` (`@prisma/adapter-neon` here). `prisma.config.ts` reads `process.env.DATABASE_URL` directly, not the throwing `env()` helper, so `prisma generate` survives a build before any database exists.
+- **A live DB call in `app/(os)/layout.tsx` would force every page under it into dynamic rendering**, even ones with no DB dependency of their own (`/ai`, `/settings`, `/library/import` were static). When a global/topbar-level client component needs server data that only a few pages' worth of DB calls justify fetching on every navigation, prefer a small `"use server"` action the client component calls lazily (e.g. on dialog open) over threading the fetch through the shared layout.
 
 ## Files touched
 Essentially all of `app/`, `components/`, `lib/`, `prisma/` are from-scratch. The load-bearing ones for continuing:
@@ -48,6 +51,9 @@ Essentially all of `app/`, `components/`, `lib/`, `prisma/` are from-scratch. Th
 - `app/(os)/library/import/page.tsx`, `components/library/csv-import-view.tsx` — CSV import UI.
 - `app/(os)/library-map/page.tsx` — Library Map.
 - `app/(os)/profile/page.tsx` — Profile, all real data, no new Prisma model.
+- `lib/shelf-actions.ts` — `"use server"`. `getShelfOptions()`, called client-side by `AddBookDialog` on open.
+- `lib/note-actions.ts`, `lib/quote-actions.ts` — `"use server"`. `addNote`/`deleteNote`, `addQuote`/`deleteQuote`.
+- `components/notes/add-note-dialog.tsx`, `components/notes/delete-note-button.tsx`, `components/quotes/add-quote-dialog.tsx`, `components/quotes/delete-quote-button.tsx` — the new mutation UI for Notes/Quotes.
 - `prisma/schema.prisma` — full data model. `prisma/seed.ts` reuses `lib/mock-data.ts`/`lib/book-detail.ts`/`lib/mock-notes.ts` directly, so `npx prisma db seed` always matches the mock dataset.
 
 ## Gotchas / constraints learned
@@ -63,7 +69,9 @@ Essentially all of `app/`, `components/`, `lib/`, `prisma/` are from-scratch. Th
 1. Cover images need real file storage (Vercel Blob or similar) — a genuine infra/cost decision, not done unprompted across multiple sessions. Ask before provisioning.
 2. `ReadingSession` only auto-tracks `startedAt`/`endedAt` on status transitions — `minutesRead`/`pagesRead` per-session aren't captured, and a book cycling reading → unread → reading gets two separate session rows with no UI to see the first one.
 3. CSV import's field set now matches Add Book, but the *merge* logic is still exact-`isbn13`-only (two rows for the same book with different/blank ISBNs both import separately). Could extend to also match on `qrCode`.
-4. **This is a strong check-in point with Dhanu, more so than prior sessions' version of this note.** Every nav screen exists, every single simple `Book` column (all ~35 of them) is wired into Add/Edit/Book-Detail *and* CSV import. What's left is genuinely infra (cover images, auth) or feature-shaped work (per-session reading stats, CSV merge-key breadth) rather than more field-wiring. Worth asking Dhanu directly whether to keep deepening this app or consider it done for her own use.
+4. No way to create a *new* shelf from the UI yet — Add/Edit's Shelf select only offers the 7 seeded shelves. A "create shelf" affordance (label/room/capacity) would need its own small form, similar in shape to the publisher/series upsert pattern but without upsert-by-name (shelves aren't unique by label).
+5. Notes/Quotes have Add + Delete but no Edit yet — a typo in a saved note or quote currently means delete-and-re-add.
+6. **This is a strong check-in point with Dhanu, more so than prior sessions' version of this note.** Every nav screen exists, every simple `Book` column is wired into Add/Edit/Book-Detail/CSV-import, shelf assignment is real, and Notes/Quotes are real CRUD instead of read-only seed data. What's left is genuinely infra (cover images, auth) or feature-shaped work (per-session reading stats, shelf creation, Note/Quote editing) rather than more field-wiring. Worth asking Dhanu directly whether to keep deepening this app or consider it done for her own use.
 
 ## Open questions
 - Real AI (OpenAI/Claude API key) behind AI Librarian, or keep it rule-based indefinitely? Not discussed with Dhanu.

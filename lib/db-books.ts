@@ -74,23 +74,28 @@ export async function getLibrarianBooksFromDb(): Promise<LibrarianBook[]> {
 }
 
 export async function getQuotesFromDb(): Promise<
-  { book: MockBook; favoriteQuote: string }[]
+  { id: string; book: MockBook; favoriteQuote: string; pageNumber?: number }[]
 > {
   const quotes = await prisma.quote.findMany({
     include: { book: { include: bookInclude } },
     orderBy: { createdAt: "desc" },
   });
-  return quotes.map((q) => ({ book: toMockBook(q.book), favoriteQuote: q.text }));
+  return quotes.map((q) => ({
+    id: q.id,
+    book: toMockBook(q.book),
+    favoriteQuote: q.text,
+    pageNumber: q.pageNumber ?? undefined,
+  }));
 }
 
 export async function searchQuotesFromDb(
   query: string
-): Promise<{ book: MockBook; favoriteQuote: string }[]> {
+): Promise<{ id: string; book: MockBook; favoriteQuote: string }[]> {
   const quotes = await prisma.quote.findMany({
     where: { text: { contains: query, mode: "insensitive" } },
     include: { book: { include: bookInclude } },
   });
-  return quotes.map((q) => ({ book: toMockBook(q.book), favoriteQuote: q.text }));
+  return quotes.map((q) => ({ id: q.id, book: toMockBook(q.book), favoriteQuote: q.text }));
 }
 
 export async function getCollectionValueFromDb() {
@@ -170,6 +175,7 @@ export async function getNotesFromDb(): Promise<MockNote[]> {
     bookId: n.bookId ?? "",
     date: n.createdAt.toISOString().slice(0, 10),
     content: n.content,
+    title: n.title ?? undefined,
   }));
 }
 
@@ -216,7 +222,17 @@ export async function getBookDetailFromDb(id: string) {
     heightMm: book.heightMm ?? undefined,
     depthMm: book.depthMm ?? undefined,
     qrCode: book.qrCode ?? undefined,
+    shelfId: book.shelfId ?? undefined,
   };
+}
+
+export type ShelfOption = { id: string; label: string; room: string | null };
+
+export async function getShelfOptionsFromDb(): Promise<ShelfOption[]> {
+  return prisma.shelf.findMany({
+    select: { id: true, label: true, room: true },
+    orderBy: [{ room: "asc" }, { label: "asc" }],
+  });
 }
 
 export type ShelfMapEntry = {

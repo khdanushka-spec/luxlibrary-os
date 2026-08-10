@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, Pencil, X } from "lucide-react";
 import { updateBook } from "@/lib/book-actions";
 import type { BookFormat, BookStatus } from "@/lib/mock-data";
+import type { ShelfOption } from "@/lib/db-books";
 
 const GENRE_OPTIONS = [
   "Literary Fiction",
@@ -72,6 +73,9 @@ type EditBookDialogProps = {
   heightMm?: number;
   depthMm?: number;
   qrCode?: string;
+  shelfId?: string;
+  shelfPosition?: number;
+  shelves: ShelfOption[];
 };
 
 export function EditBookDialog({
@@ -113,6 +117,9 @@ export function EditBookDialog({
   heightMm: initialHeightMm,
   depthMm: initialDepthMm,
   qrCode: initialQrCode,
+  shelfId: initialShelfId,
+  shelfPosition: initialShelfPosition,
+  shelves,
 }: EditBookDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -170,6 +177,10 @@ export function EditBookDialog({
   const [heightMm, setHeightMm] = useState(initialHeightMm ? String(initialHeightMm) : "");
   const [depthMm, setDepthMm] = useState(initialDepthMm ? String(initialDepthMm) : "");
   const [qrCode, setQrCode] = useState(initialQrCode ?? "");
+  const [shelfId, setShelfId] = useState(initialShelfId ?? "");
+  const [shelfPosition, setShelfPosition] = useState(
+    initialShelfPosition ? String(initialShelfPosition) : ""
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -224,6 +235,8 @@ export function EditBookDialog({
         heightMm: heightMm ? Number(heightMm) : null,
         depthMm: depthMm ? Number(depthMm) : null,
         qrCode: qrCode.trim() || undefined,
+        shelfId: shelfId || undefined,
+        shelfPosition: shelfPosition ? Number(shelfPosition) : null,
       });
       if (result.ok) {
         setOpen(false);
@@ -527,6 +540,38 @@ export function EditBookDialog({
                     placeholder="Manually entered code, e.g. LUX-0042"
                     className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                   />
+                </div>
+
+                <div className="grid grid-cols-[1fr_auto] gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Shelf
+                    </label>
+                    <select
+                      value={shelfId}
+                      onChange={(e) => setShelfId(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    >
+                      <option value="">Unshelved</option>
+                      {shelves.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.room ? `${s.room} — ${s.label}` : s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-20">
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Position
+                    </label>
+                    <input
+                      type="number"
+                      value={shelfPosition}
+                      onChange={(e) => setShelfPosition(e.target.value)}
+                      disabled={!shelfId}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none disabled:opacity-50"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-3">

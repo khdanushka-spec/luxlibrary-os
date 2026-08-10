@@ -45,6 +45,9 @@ export async function bulkImportBooks(csvText: string): Promise<BulkImportResult
   let created = 0;
   let updated = 0;
 
+  const shelves = await prisma.shelf.findMany({ select: { id: true, label: true } });
+  const shelfIdByLabel = new Map(shelves.map((s) => [s.label.toLowerCase(), s.id]));
+
   for (const row of rows) {
     try {
       const [authorRecord, genreRecord, publisherId, seriesId, tagIds, existing] =
@@ -64,6 +67,8 @@ export async function bulkImportBooks(csvText: string): Promise<BulkImportResult
           resolveTagIds(row.tags),
           row.isbn13 ? prisma.book.findUnique({ where: { isbn13: row.isbn13 } }) : null,
         ]);
+
+      const shelfId = row.shelf ? shelfIdByLabel.get(row.shelf.trim().toLowerCase()) : undefined;
 
       const bookData = {
         title: row.title,
@@ -92,6 +97,8 @@ export async function bulkImportBooks(csvText: string): Promise<BulkImportResult
         heightMm: row.heightMm ?? undefined,
         depthMm: row.depthMm ?? undefined,
         qrCode: row.qrCode ?? undefined,
+        shelfId: shelfId ?? undefined,
+        shelfPosition: shelfId ? row.shelfPosition ?? undefined : undefined,
       };
 
       const readingStatus = bookData.readingStatus;

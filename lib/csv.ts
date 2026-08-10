@@ -29,6 +29,8 @@ export type CsvBookRow = {
   heightMm?: number;
   depthMm?: number;
   qrCode?: string;
+  shelf?: string;
+  shelfPosition?: number;
 };
 
 export type ParsedCsv = {
@@ -37,7 +39,7 @@ export type ParsedCsv = {
 };
 
 export const CSV_TEMPLATE_HEADER =
-  "title,subtitle,author,genre,format,status,publisher,series,seriesVolume,year,originalPublicationYear,pages,isbn13,isbn10,country,language,condition,purchasePrice,tags,isFavorite,isRare,isSigned,isFirstEdition,isLimitedEdition,weightGrams,widthMm,heightMm,depthMm,qrCode";
+  "title,subtitle,author,genre,format,status,publisher,series,seriesVolume,year,originalPublicationYear,pages,isbn13,isbn10,country,language,condition,purchasePrice,tags,isFavorite,isRare,isSigned,isFirstEdition,isLimitedEdition,weightGrams,widthMm,heightMm,depthMm,qrCode,shelf,shelfPosition";
 
 function parseCsvLine(line: string): string[] {
   const cells: string[] = [];
@@ -135,6 +137,8 @@ export function parseBookCsv(text: string): ParsedCsv {
       heightMm: record.heightmm ? toNumber(record.heightmm) : undefined,
       depthMm: record.depthmm ? toNumber(record.depthmm) : undefined,
       qrCode: record.qrcode || undefined,
+      shelf: record.shelf || undefined,
+      shelfPosition: record.shelfposition ? toNumber(record.shelfposition) : undefined,
     });
   }
 

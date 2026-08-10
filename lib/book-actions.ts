@@ -42,6 +42,8 @@ export type BookFormInput = {
   heightMm?: number | null;
   depthMm?: number | null;
   qrCode?: string;
+  shelfId?: string;
+  shelfPosition?: number | null;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -143,6 +145,8 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         heightMm: input.heightMm ?? undefined,
         depthMm: input.depthMm ?? undefined,
         qrCode: input.qrCode?.trim() || undefined,
+        shelfId: input.shelfId || undefined,
+        shelfPosition: input.shelfId ? input.shelfPosition ?? undefined : undefined,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
@@ -245,6 +249,8 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         heightMm: input.heightMm ?? null,
         depthMm: input.depthMm ?? null,
         qrCode: input.qrCode?.trim() || null,
+        shelfId: input.shelfId || null,
+        shelfPosition: input.shelfId ? input.shelfPosition ?? null : null,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },

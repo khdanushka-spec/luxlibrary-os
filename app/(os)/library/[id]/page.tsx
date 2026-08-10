@@ -5,7 +5,7 @@ import { DeleteBookButton } from "@/components/library/delete-book-button";
 import { EditBookDialog } from "@/components/library/edit-book-dialog";
 import { hashCode } from "@/lib/book-detail";
 import { STATUS_CONFIG } from "@/lib/book-status";
-import { getBookDetailFromDb } from "@/lib/db-books";
+import { getBookDetailFromDb, getShelfOptionsFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export default async function BookDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const detail = await getBookDetailFromDb(id);
+  const [detail, shelves] = await Promise.all([getBookDetailFromDb(id), getShelfOptionsFromDb()]);
   if (!detail) notFound();
 
   const { book } = detail;
@@ -83,6 +83,9 @@ export default async function BookDetailPage({
             heightMm={detail.heightMm}
             depthMm={detail.depthMm}
             qrCode={detail.qrCode}
+            shelfId={detail.shelfId}
+            shelfPosition={detail.shelfPosition}
+            shelves={shelves}
           />
           <DeleteBookButton id={book.id} />
         </div>

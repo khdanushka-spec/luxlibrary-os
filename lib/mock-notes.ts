@@ -3,6 +3,7 @@ export type MockNote = {
   bookId: string;
   date: string;
   content: string;
+  title?: string;
 };
 
 export const MOCK_NOTES: MockNote[] = [
