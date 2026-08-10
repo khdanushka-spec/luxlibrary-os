@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { BookCondition, BookFormat, ReadingStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
-import { isUniqueConstraintError, uniqueConstraintTarget } from "@/lib/prisma-errors";
-
-function duplicateKeyMessage(error: unknown): string {
-  return uniqueConstraintTarget(error).includes("qrCode")
-    ? "That QR code is already assigned to another book."
-    : "That ISBN is already in your library.";
-}
+import { duplicateKeyMessage, isUniqueConstraintError } from "@/lib/prisma-errors";
 
 export type BookFormInput = {
   title: string;
@@ -74,7 +68,7 @@ export async function resolveSeriesId(series: string | undefined) {
   return record.id;
 }
 
-async function resolveTagIds(tags: string | undefined): Promise<string[]> {
+export async function resolveTagIds(tags: string | undefined): Promise<string[]> {
   const names = (tags ?? "")
     .split(",")
     .map((t) => t.trim())

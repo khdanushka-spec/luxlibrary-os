@@ -8,8 +8,8 @@ import { bulkImportBooks, type BulkImportResult } from "@/lib/import-actions";
 import { CSV_TEMPLATE_HEADER } from "@/lib/csv";
 
 const SAMPLE_CSV = `${CSV_TEMPLATE_HEADER}
-The Midnight Library,Matt Haig,Fantasy,Paperback,Unread,Canongate,,,2020,304,9781786892737,14.99
-Circe,Madeline Miller,Fantasy,Hardcover,Completed,Bloomsbury,,,2018,393,9781408890042,22.50`;
+The Midnight Library,,Matt Haig,Fantasy,Paperback,Unread,Canongate,,,2020,,304,9781786892737,,,English,,14.99,,,,,,,,,,
+Circe,,Madeline Miller,Fantasy,Hardcover,Completed,Bloomsbury,,,2018,,393,9781408890042,,,English,,22.50,mythology,true,,,,,,,,`;
 
 export function CsvImportView() {
   const router = useRouter();
@@ -73,9 +73,10 @@ export function CsvImportView() {
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Bulk-add books from a CSV file. Only <code>title</code> and{" "}
-          <code>author</code> are required. A row whose <code>isbn13</code>{" "}
-          matches a book you already own updates it instead of creating a
-          duplicate.
+          <code>author</code> are required — every other column is optional
+          and covers the same fields as Add Book, including tags and edition
+          flags. A row whose <code>isbn13</code> matches a book you already
+          own updates it instead of creating a duplicate.
         </p>
       </div>
 

@@ -9,9 +9,26 @@ export type CsvBookRow = {
   series?: string;
   seriesVolume?: number;
   year?: number;
+  originalPublicationYear?: number;
   pages?: number;
   isbn13?: string;
+  isbn10?: string;
   purchasePrice?: number;
+  subtitle?: string;
+  country?: string;
+  condition?: string;
+  language?: string;
+  tags?: string;
+  isFavorite?: boolean;
+  isRare?: boolean;
+  isSigned?: boolean;
+  isFirstEdition?: boolean;
+  isLimitedEdition?: boolean;
+  weightGrams?: number;
+  widthMm?: number;
+  heightMm?: number;
+  depthMm?: number;
+  qrCode?: string;
 };
 
 export type ParsedCsv = {
@@ -20,7 +37,7 @@ export type ParsedCsv = {
 };
 
 export const CSV_TEMPLATE_HEADER =
-  "title,author,genre,format,status,publisher,series,seriesVolume,year,pages,isbn13,purchasePrice";
+  "title,subtitle,author,genre,format,status,publisher,series,seriesVolume,year,originalPublicationYear,pages,isbn13,isbn10,country,language,condition,purchasePrice,tags,isFavorite,isRare,isSigned,isFirstEdition,isLimitedEdition,weightGrams,widthMm,heightMm,depthMm,qrCode";
 
 function parseCsvLine(line: string): string[] {
   const cells: string[] = [];
@@ -58,6 +75,10 @@ function toNumber(value: string): number | undefined {
   return value && !Number.isNaN(n) ? n : undefined;
 }
 
+function toBoolean(value: string): boolean {
+  return ["true", "yes", "y", "1"].includes(value.trim().toLowerCase());
+}
+
 export function parseBookCsv(text: string): ParsedCsv {
   const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
   if (lines.length === 0) {
@@ -92,9 +113,28 @@ export function parseBookCsv(text: string): ParsedCsv {
       series: record.series || undefined,
       seriesVolume: record.seriesvolume ? toNumber(record.seriesvolume) : undefined,
       year: record.year ? toNumber(record.year) : undefined,
+      originalPublicationYear: record.originalpublicationyear
+        ? toNumber(record.originalpublicationyear)
+        : undefined,
       pages: record.pages ? toNumber(record.pages) : undefined,
       isbn13: record.isbn13 || undefined,
+      isbn10: record.isbn10 || undefined,
       purchasePrice: record.purchaseprice ? toNumber(record.purchaseprice) : undefined,
+      subtitle: record.subtitle || undefined,
+      country: record.country || undefined,
+      condition: record.condition || undefined,
+      language: record.language || undefined,
+      tags: record.tags || undefined,
+      isFavorite: record.isfavorite ? toBoolean(record.isfavorite) : undefined,
+      isRare: record.israre ? toBoolean(record.israre) : undefined,
+      isSigned: record.issigned ? toBoolean(record.issigned) : undefined,
+      isFirstEdition: record.isfirstedition ? toBoolean(record.isfirstedition) : undefined,
+      isLimitedEdition: record.islimitededition ? toBoolean(record.islimitededition) : undefined,
+      weightGrams: record.weightgrams ? toNumber(record.weightgrams) : undefined,
+      widthMm: record.widthmm ? toNumber(record.widthmm) : undefined,
+      heightMm: record.heightmm ? toNumber(record.heightmm) : undefined,
+      depthMm: record.depthmm ? toNumber(record.depthmm) : undefined,
+      qrCode: record.qrcode || undefined,
     });
   }
 
