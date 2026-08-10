@@ -6,7 +6,7 @@ import { getAllUsers } from "@/lib/admin-actions";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Admin — LuxLibrary OS",
+  title: "Admin — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

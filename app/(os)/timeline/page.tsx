@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getTimelineEvents } from "@/lib/timeline";
 
 export const metadata = {
-  title: "Timeline — LuxLibrary OS",
+  title: "Timeline — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

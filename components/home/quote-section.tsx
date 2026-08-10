@@ -10,7 +10,7 @@ export function QuoteSection() {
             loves every book on the shelf.&rdquo;
           </p>
           <p className="mt-6 text-sm tracking-wide text-muted-foreground">
-            THE LUXLIBRARY OS DESIGN PRINCIPLE
+            THE BRINGBOOKS DESIGN PRINCIPLE
           </p>
         </Reveal>
       </div>

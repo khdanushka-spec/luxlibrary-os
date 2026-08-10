@@ -14,7 +14,7 @@ import {
 } from "@/lib/reading";
 
 export const metadata = {
-  title: "Reading Life — LuxLibrary OS",
+  title: "Reading Life — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

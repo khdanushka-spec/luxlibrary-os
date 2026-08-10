@@ -5,7 +5,7 @@ import { getPublishers, publisherSlug } from "@/lib/publishers";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Publishers — LuxLibrary OS",
+  title: "Publishers — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

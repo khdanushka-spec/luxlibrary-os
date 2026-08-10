@@ -2,7 +2,7 @@ import { Database, Moon, Settings as SettingsIcon, Sparkles, User } from "lucide
 import { SettingsToggle } from "@/components/settings/settings-toggle";
 
 export const metadata = {
-  title: "Settings — LuxLibrary OS",
+  title: "Settings — BringBooks",
 };
 
 export default function SettingsPage() {
@@ -28,7 +28,7 @@ export default function SettingsPage() {
         <div className="divide-y divide-border/60">
           <SettingsToggle
             label="Dark mode"
-            description="LuxLibrary OS is dark-mode-first; light mode is planned."
+            description="BringBooks is dark-mode-first; light mode is planned."
             defaultChecked
           />
           <SettingsToggle

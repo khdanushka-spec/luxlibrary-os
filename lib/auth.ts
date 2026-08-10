@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { User } from "@/generated/prisma";
 
-export const SESSION_COOKIE_NAME = "luxlibrary_session";
+export const SESSION_COOKIE_NAME = "bringbooks_session";
 export const SESSION_DURATION_DAYS = 30;
 export const SUPER_ADMIN_EMAIL = "khdanushka@gmail.com";
 

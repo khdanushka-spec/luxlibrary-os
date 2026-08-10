@@ -15,7 +15,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       <Link href="/dashboard" className="mb-8 flex items-center gap-2.5 px-2">
         <LogoMark className="h-6 w-6" />
         <span className="font-display text-[1.05rem] tracking-tight text-foreground">
-          LuxLibrary <span className="text-gold">OS</span>
+          Bring<span className="text-gold">Books</span>
         </span>
       </Link>
 

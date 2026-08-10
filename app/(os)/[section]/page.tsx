@@ -11,7 +11,7 @@ export async function generateMetadata({
 }) {
   const { section } = await params;
   const item = ALL_ITEMS.find((i) => i.href === `/${section}`);
-  return { title: item ? `${item.label} — LuxLibrary OS` : "LuxLibrary OS" };
+  return { title: item ? `${item.label} — BringBooks` : "BringBooks" };
 }
 
 export default async function SectionPlaceholderPage({

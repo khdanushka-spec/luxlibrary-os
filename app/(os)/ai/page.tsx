@@ -1,7 +1,7 @@
 import { AiChat } from "@/components/ai/ai-chat";
 
 export const metadata = {
-  title: "AI Librarian — LuxLibrary OS",
+  title: "AI Librarian — BringBooks",
 };
 
 export default function AiPage() {

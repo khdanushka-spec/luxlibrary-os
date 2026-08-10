@@ -24,12 +24,11 @@ export function SiteFooter() {
             <div className="flex items-center gap-2.5">
               <LogoMark className="h-5 w-5" />
               <span className="font-display text-base text-foreground">
-                LuxLibrary <span className="text-gold">OS</span>
+                Bring<span className="text-gold">Books</span>
               </span>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              The world&apos;s most beautiful personal library — built for
-              those who love books.
+            <p className="mt-4 text-sm italic text-muted-foreground">
+              Your books. Your library. Your world.
             </p>
           </div>
 
@@ -57,7 +56,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-8 text-xs text-muted-foreground sm:flex-row">
-          <span>&copy; {new Date().getFullYear()} LuxLibrary OS. Crafted for book collectors.</span>
+          <span>&copy; {new Date().getFullYear()} BringBooks. Crafted for book collectors.</span>
           <span>Designed to feel like Apple, Notion, and a beloved reading room.</span>
         </div>
       </div>

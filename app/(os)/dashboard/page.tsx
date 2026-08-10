@@ -19,7 +19,7 @@ import { getCompletedThisYear, getCurrentlyReading } from "@/lib/reading";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Home — LuxLibrary OS",
+  title: "Home — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

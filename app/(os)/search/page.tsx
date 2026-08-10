@@ -12,7 +12,7 @@ export async function generateMetadata({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  return { title: q ? `“${q}” — Search — LuxLibrary OS` : "Search — LuxLibrary OS" };
+  return { title: q ? `“${q}” — Search — BringBooks` : "Search — BringBooks" };
 }
 
 export default async function SearchPage({

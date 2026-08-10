@@ -3,7 +3,7 @@ import { SignupForm } from "@/components/auth/signup-form";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Request access — LuxLibrary OS",
+  title: "Request access — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

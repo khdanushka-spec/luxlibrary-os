@@ -5,7 +5,7 @@ import type { MockBook } from "@/lib/mock-data";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Genres — LuxLibrary OS",
+  title: "Genres — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

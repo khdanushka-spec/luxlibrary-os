@@ -17,7 +17,7 @@ export async function generateMetadata({
   const user = (await getCurrentUser())!;
   const books = await getAllBooksFromDb(user.id);
   const publisher = getPublisherBooks(slug, books);
-  return { title: publisher ? `${publisher.name} — LuxLibrary OS` : "LuxLibrary OS" };
+  return { title: publisher ? `${publisher.name} — BringBooks` : "BringBooks" };
 }
 
 export default async function PublisherDetailPage({

@@ -19,7 +19,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const detail = await getBookDetailFromDb(id);
-  return { title: detail ? `${detail.book.title} — LuxLibrary OS` : "LuxLibrary OS" };
+  return { title: detail ? `${detail.book.title} — BringBooks` : "BringBooks" };
 }
 
 export default async function BookDetailPage({

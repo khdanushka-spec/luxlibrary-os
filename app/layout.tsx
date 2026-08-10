@@ -21,9 +21,9 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "LuxLibrary OS — The world's most beautiful personal library",
+  title: "BringBooks — The world's most beautiful personal library",
   description:
-    "LuxLibrary OS is the operating system for passionate book collectors — an elegant, AI-first home for a 2,000+ volume personal library.",
+    "BringBooks is the operating system for passionate book collectors — an elegant, AI-first home for a 2,000+ volume personal library. Your books. Your library. Your world.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

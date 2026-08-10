@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <Link href="/" className="mb-8 flex items-center gap-2 text-foreground">
         <LogoMark className="h-7 w-7" />
         <span className="font-display text-lg">
-          LuxLibrary <span className="text-gold">OS</span>
+          Bring<span className="text-gold">Books</span>
         </span>
       </Link>
       <div className="w-full max-w-sm">{children}</div>

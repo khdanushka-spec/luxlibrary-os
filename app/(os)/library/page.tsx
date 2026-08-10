@@ -3,7 +3,7 @@ import { getAllBooksFromDb } from "@/lib/db-books";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Library — LuxLibrary OS",
+  title: "Library — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

@@ -43,7 +43,7 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="mt-7 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground"
         >
-          LuxLibrary OS turns a 2,000&#8209;volume collection into a living,
+          BringBooks turns a 2,000&#8209;volume collection into a living,
           intelligent library — every book catalogued, mapped, and understood
           by an AI librarian that knows your shelves better than you do.
         </motion.p>

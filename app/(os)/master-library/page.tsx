@@ -9,7 +9,7 @@ import { requireSuperAdmin } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Master Library — LuxLibrary OS",
+  title: "Master Library — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

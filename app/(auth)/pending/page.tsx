@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { LogoutButton } from "@/components/auth/logout-button";
 
 export const metadata = {
-  title: "Pending approval — LuxLibrary OS",
+  title: "Pending approval — BringBooks",
 };
 
 export const dynamic = "force-dynamic";

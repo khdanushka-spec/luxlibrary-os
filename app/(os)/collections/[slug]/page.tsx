@@ -15,7 +15,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const collection = getCollection(slug);
-  return { title: collection ? `${collection.title} — LuxLibrary OS` : "LuxLibrary OS" };
+  return { title: collection ? `${collection.title} — BringBooks` : "BringBooks" };
 }
 
 export default async function CollectionDetailPage({

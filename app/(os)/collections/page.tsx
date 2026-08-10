@@ -6,7 +6,7 @@ import { coverGradient } from "@/lib/mock-data";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
-  title: "Collections — LuxLibrary OS",
+  title: "Collections — BringBooks",
 };
 
 export const dynamic = "force-dynamic";
