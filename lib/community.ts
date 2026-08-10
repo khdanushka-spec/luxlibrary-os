@@ -212,10 +212,17 @@ export async function getCommunityMembers(communityId: string): Promise<Communit
   }));
 }
 
-export async function getMessages(communityId: string, currentUserId: string, limit = 300) {
+export async function getMessages(
+  communityId: string,
+  currentUserId: string,
+  visibleFrom: Date,
+  limit = 300
+) {
   // Most recent `limit` messages, but returned oldest-first for rendering.
+  // visibleFrom = the member's joinedAt: history from before they joined
+  // (or before their most recent rejoin) stays hidden, like a real group chat.
   const rows = await prisma.communityMessage.findMany({
-    where: { communityId },
+    where: { communityId, createdAt: { gte: visibleFrom } },
     include: messageInclude,
     orderBy: { createdAt: "desc" },
     take: limit,

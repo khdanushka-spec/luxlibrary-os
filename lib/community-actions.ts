@@ -349,7 +349,7 @@ export async function getCommunityFeed(): Promise<CommunityFeed | { error: strin
   });
 
   const [messages, members, typingNames] = await Promise.all([
-    getMessages(ctx.community.id, ctx.user.id),
+    getMessages(ctx.community.id, ctx.user.id, ctx.member.joinedAt),
     getCommunityMembers(ctx.community.id),
     getTypingMemberNames(ctx.community.id, ctx.user.id),
   ]);

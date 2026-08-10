@@ -70,7 +70,7 @@ export default async function CommunityPage() {
   const firstUnreadId = await getFirstUnreadMessageId(community.id, user.id, member.lastReadAt);
 
   const [messages, members, myBooks] = await Promise.all([
-    getMessages(community.id, user.id),
+    getMessages(community.id, user.id, member.joinedAt),
     getCommunityMembers(community.id),
     getAllBooksFromDb(user.id),
   ]);
