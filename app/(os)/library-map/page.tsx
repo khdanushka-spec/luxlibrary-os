@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Layers } from "lucide-react";
+import { AddShelfDialog } from "@/components/library/add-shelf-dialog";
+import { DeleteShelfButton } from "@/components/library/delete-shelf-button";
 import { hashCode } from "@/lib/book-detail";
 import { getShelfMapFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
@@ -23,14 +25,17 @@ export default async function LibraryMapPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="font-display flex items-center gap-2.5 text-3xl text-foreground">
-          <Layers className="size-6 text-gold" />
-          Library Map
-        </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          {totalBooks.toLocaleString()} books across {shelves.length} shelves
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display flex items-center gap-2.5 text-3xl text-foreground">
+            <Layers className="size-6 text-gold" />
+            Library Map
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {totalBooks.toLocaleString()} books across {shelves.length} shelves
+          </p>
+        </div>
+        <AddShelfDialog />
       </div>
 
       {Array.from(rooms.entries()).map(([room, roomShelves]) => (
@@ -44,14 +49,17 @@ export default async function LibraryMapPage() {
                 key={shelf.id}
                 className="rounded-2xl border border-border/70 bg-card/60 p-6"
               >
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex items-center justify-between gap-4">
                   <h3 className="text-sm font-medium text-foreground">
                     {shelf.label}
                   </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {shelf.books.length}
-                    {shelf.capacity ? ` / ${shelf.capacity}` : ""} books
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground">
+                      {shelf.books.length}
+                      {shelf.capacity ? ` / ${shelf.capacity}` : ""} books
+                    </span>
+                    {shelf.id !== "unshelved" && <DeleteShelfButton id={shelf.id} />}
+                  </div>
                 </div>
 
                 {shelf.capacity && (
