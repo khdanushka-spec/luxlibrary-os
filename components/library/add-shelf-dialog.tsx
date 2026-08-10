@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Plus, X } from "lucide-react";
 import { addShelf } from "@/lib/shelf-actions";
@@ -62,7 +63,7 @@ export function AddShelfDialog() {
         New Shelf
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -146,7 +147,8 @@ export function AddShelfDialog() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
 import { addBook } from "@/lib/book-actions";
@@ -180,7 +181,7 @@ export function AddBookDialog() {
         Add Book
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -652,7 +653,8 @@ export function AddBookDialog() {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
