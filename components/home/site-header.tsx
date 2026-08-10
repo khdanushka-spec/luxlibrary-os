@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogoMark } from "./logo-mark";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { label: "Library", href: "#library-map" },
@@ -51,6 +52,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link
             href="/login"
             className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"

@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { AddBookDialog } from "./add-book-dialog";
 import { UserMenu } from "./user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppTopbar({ userName, userEmail }: { userName: string; userEmail: string }) {
   return (
@@ -17,6 +18,7 @@ export function AppTopbar({ userName, userEmail }: { userName: string; userEmail
 
       <div className="flex items-center gap-3">
         <AddBookDialog />
+        <ThemeToggle />
         <UserMenu name={userName} email={userEmail} />
       </div>
     </header>
