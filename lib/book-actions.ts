@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import type { BookCondition, BookFormat, ReadingStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
-import { isUniqueConstraintError } from "@/lib/prisma-errors";
+import { isUniqueConstraintError, uniqueConstraintTarget } from "@/lib/prisma-errors";
+
+function duplicateKeyMessage(error: unknown): string {
+  return uniqueConstraintTarget(error).includes("qrCode")
+    ? "That QR code is already assigned to another book."
+    : "That ISBN is already in your library.";
+}
 
 export type BookFormInput = {
   title: string;
@@ -37,6 +43,11 @@ export type BookFormInput = {
   isSigned?: boolean;
   isFirstEdition?: boolean;
   isLimitedEdition?: boolean;
+  weightGrams?: number | null;
+  widthMm?: number | null;
+  heightMm?: number | null;
+  depthMm?: number | null;
+  qrCode?: string;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -133,6 +144,11 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         isSigned: input.isSigned ?? false,
         isFirstEdition: input.isFirstEdition ?? false,
         isLimitedEdition: input.isLimitedEdition ?? false,
+        weightGrams: input.weightGrams ?? undefined,
+        widthMm: input.widthMm ?? undefined,
+        heightMm: input.heightMm ?? undefined,
+        depthMm: input.depthMm ?? undefined,
+        qrCode: input.qrCode?.trim() || undefined,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
@@ -153,7 +169,7 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
     return { ok: true, id: book.id };
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      return { ok: false, error: "That ISBN is already in your library." };
+      return { ok: false, error: duplicateKeyMessage(error) };
     }
     throw error;
   }
@@ -230,6 +246,11 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         isSigned: input.isSigned ?? false,
         isFirstEdition: input.isFirstEdition ?? false,
         isLimitedEdition: input.isLimitedEdition ?? false,
+        weightGrams: input.weightGrams ?? null,
+        widthMm: input.widthMm ?? null,
+        heightMm: input.heightMm ?? null,
+        depthMm: input.depthMm ?? null,
+        qrCode: input.qrCode?.trim() || null,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
@@ -255,7 +276,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
     return { ok: true, id };
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      return { ok: false, error: "That ISBN is already in your library." };
+      return { ok: false, error: duplicateKeyMessage(error) };
     }
     throw error;
   }

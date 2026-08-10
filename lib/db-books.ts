@@ -211,6 +211,11 @@ export async function getBookDetailFromDb(id: string) {
     isSigned: book.isSigned,
     isFirstEdition: book.isFirstEdition,
     isLimitedEdition: book.isLimitedEdition,
+    weightGrams: book.weightGrams ?? undefined,
+    widthMm: book.widthMm ?? undefined,
+    heightMm: book.heightMm ?? undefined,
+    depthMm: book.depthMm ?? undefined,
+    qrCode: book.qrCode ?? undefined,
   };
 }
 

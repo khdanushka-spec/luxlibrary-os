@@ -78,6 +78,11 @@ export default async function BookDetailPage({
             isSigned={detail.isSigned}
             isFirstEdition={detail.isFirstEdition}
             isLimitedEdition={detail.isLimitedEdition}
+            weightGrams={detail.weightGrams}
+            widthMm={detail.widthMm}
+            heightMm={detail.heightMm}
+            depthMm={detail.depthMm}
+            qrCode={detail.qrCode}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -295,6 +300,14 @@ export default async function BookDetailPage({
                 "Insured value",
                 detail.insuranceValue ? `$${detail.insuranceValue.toFixed(2)}` : undefined,
               ],
+              [
+                "Dimensions",
+                detail.widthMm || detail.heightMm || detail.depthMm
+                  ? `${detail.widthMm ?? "?"} × ${detail.heightMm ?? "?"} × ${detail.depthMm ?? "?"} mm`
+                  : undefined,
+              ],
+              ["Weight", detail.weightGrams ? `${detail.weightGrams} g` : undefined],
+              ["QR code", detail.qrCode],
             ]
               .filter(([, value]) => value)
               .map(([label, value]) => (

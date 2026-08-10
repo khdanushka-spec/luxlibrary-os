@@ -67,6 +67,11 @@ type EditBookDialogProps = {
   isSigned?: boolean;
   isFirstEdition?: boolean;
   isLimitedEdition?: boolean;
+  weightGrams?: number;
+  widthMm?: number;
+  heightMm?: number;
+  depthMm?: number;
+  qrCode?: string;
 };
 
 export function EditBookDialog({
@@ -103,6 +108,11 @@ export function EditBookDialog({
   isSigned: initialIsSigned,
   isFirstEdition: initialIsFirstEdition,
   isLimitedEdition: initialIsLimitedEdition,
+  weightGrams: initialWeightGrams,
+  widthMm: initialWidthMm,
+  heightMm: initialHeightMm,
+  depthMm: initialDepthMm,
+  qrCode: initialQrCode,
 }: EditBookDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -153,6 +163,13 @@ export function EditBookDialog({
   const [isSigned, setIsSigned] = useState(initialIsSigned ?? false);
   const [isFirstEdition, setIsFirstEdition] = useState(initialIsFirstEdition ?? false);
   const [isLimitedEdition, setIsLimitedEdition] = useState(initialIsLimitedEdition ?? false);
+  const [weightGrams, setWeightGrams] = useState(
+    initialWeightGrams ? String(initialWeightGrams) : ""
+  );
+  const [widthMm, setWidthMm] = useState(initialWidthMm ? String(initialWidthMm) : "");
+  const [heightMm, setHeightMm] = useState(initialHeightMm ? String(initialHeightMm) : "");
+  const [depthMm, setDepthMm] = useState(initialDepthMm ? String(initialDepthMm) : "");
+  const [qrCode, setQrCode] = useState(initialQrCode ?? "");
 
   useEffect(() => {
     if (!open) return;
@@ -202,6 +219,11 @@ export function EditBookDialog({
         isSigned,
         isFirstEdition,
         isLimitedEdition,
+        weightGrams: weightGrams ? Number(weightGrams) : null,
+        widthMm: widthMm ? Number(widthMm) : null,
+        heightMm: heightMm ? Number(heightMm) : null,
+        depthMm: depthMm ? Number(depthMm) : null,
+        qrCode: qrCode.trim() || undefined,
       });
       if (result.ok) {
         setOpen(false);
@@ -455,6 +477,54 @@ export function EditBookDialog({
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     placeholder="United States"
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Dimensions (mm) &amp; weight (g)
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    <input
+                      type="number"
+                      value={widthMm}
+                      onChange={(e) => setWidthMm(e.target.value)}
+                      placeholder="W"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                    <input
+                      type="number"
+                      value={heightMm}
+                      onChange={(e) => setHeightMm(e.target.value)}
+                      placeholder="H"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                    <input
+                      type="number"
+                      value={depthMm}
+                      onChange={(e) => setDepthMm(e.target.value)}
+                      placeholder="D"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                    <input
+                      type="number"
+                      value={weightGrams}
+                      onChange={(e) => setWeightGrams(e.target.value)}
+                      placeholder="Wt"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    QR code
+                  </label>
+                  <input
+                    value={qrCode}
+                    onChange={(e) => setQrCode(e.target.value)}
+                    placeholder="Manually entered code, e.g. LUX-0042"
                     className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                   />
                 </div>
