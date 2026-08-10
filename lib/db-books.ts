@@ -49,6 +49,7 @@ function toMockBook(book: DbBook): MockBook {
     isSigned: book.isSigned || undefined,
     isFirstEdition: book.isFirstEdition || undefined,
     isLimitedEdition: book.isLimitedEdition || undefined,
+    coverImageUrl: book.coverImageUrl ?? undefined,
   };
 }
 
@@ -243,6 +244,7 @@ export async function getBookDetailFromDb(id: string) {
     heightMm: book.heightMm ?? undefined,
     depthMm: book.depthMm ?? undefined,
     qrCode: book.qrCode ?? undefined,
+    externalLink: book.externalLink ?? undefined,
     shelfId: book.shelfId ?? undefined,
     currentPage: book.currentPage ?? undefined,
   };

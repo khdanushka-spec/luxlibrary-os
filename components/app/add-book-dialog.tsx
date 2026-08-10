@@ -68,6 +68,7 @@ export function AddBookDialog() {
   const [heightMm, setHeightMm] = useState("");
   const [depthMm, setDepthMm] = useState("");
   const [qrCode, setQrCode] = useState("");
+  const [externalLink, setExternalLink] = useState("");
   const [shelfId, setShelfId] = useState("");
   const [shelfPosition, setShelfPosition] = useState("");
   const [shelves, setShelves] = useState<ShelfOption[]>([]);
@@ -122,6 +123,7 @@ export function AddBookDialog() {
     setHeightMm("");
     setDepthMm("");
     setQrCode("");
+    setExternalLink("");
     setShelfId("");
     setShelfPosition("");
   }
@@ -165,6 +167,7 @@ export function AddBookDialog() {
         heightMm: heightMm ? Number(heightMm) : null,
         depthMm: depthMm ? Number(depthMm) : null,
         qrCode: qrCode.trim() || undefined,
+        externalLink: externalLink.trim() || undefined,
         shelfId: shelfId || undefined,
         shelfPosition: shelfPosition ? Number(shelfPosition) : null,
       });
@@ -494,6 +497,18 @@ export function AddBookDialog() {
                       value={qrCode}
                       onChange={(e) => setQrCode(e.target.value)}
                       placeholder="Manually entered code, e.g. LUX-0042"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Book link
+                    </label>
+                    <input
+                      value={externalLink}
+                      onChange={(e) => setExternalLink(e.target.value)}
+                      placeholder="Link to buy it, read it, or learn more"
                       className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                     />
                   </div>

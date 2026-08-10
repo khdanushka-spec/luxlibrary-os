@@ -51,6 +51,7 @@ export type MockBook = {
   isSigned?: boolean;
   isFirstEdition?: boolean;
   isLimitedEdition?: boolean;
+  coverImageUrl?: string;
 };
 
 export const MOCK_BOOKS: MockBook[] = [

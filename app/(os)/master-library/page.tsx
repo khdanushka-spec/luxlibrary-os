@@ -75,12 +75,21 @@ export default async function MasterLibraryPage() {
                   key={book.id}
                   className="flex items-center gap-4 border-b border-border/60 py-3 last:border-b-0"
                 >
-                  <div
-                    className={cn(
-                      "h-14 w-10 shrink-0 rounded bg-gradient-to-br",
-                      coverGradient(i)
-                    )}
-                  />
+                  {book.coverImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-pasted URLs, not worth whitelisting every possible cover host in next.config
+                    <img
+                      src={book.coverImageUrl}
+                      alt={`${book.title} cover`}
+                      className="h-14 w-10 shrink-0 rounded object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={cn(
+                        "h-14 w-10 shrink-0 rounded bg-gradient-to-br",
+                        coverGradient(i)
+                      )}
+                    />
+                  )}
                   <Link
                     href={`/library/${book.id}`}
                     className="min-w-0 flex-1 transition-colors hover:text-gold"

@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, Gem, Heart, MapPin, NotebookText, Quote, Sparkles, Star, Tag } from "lucide-react";
+import { ArrowLeft, BookOpen, ExternalLink, Gem, Heart, MapPin, NotebookText, Quote, Sparkles, Star, Tag } from "lucide-react";
 import { DeleteBookButton } from "@/components/library/delete-book-button";
 import { EditBookDialog } from "@/components/library/edit-book-dialog";
 import { AddNoteDialog } from "@/components/notes/add-note-dialog";
 import { DeleteNoteButton } from "@/components/notes/delete-note-button";
+import { EditNoteDialog } from "@/components/notes/edit-note-dialog";
 import { AddQuoteDialog } from "@/components/quotes/add-quote-dialog";
 import { DeleteQuoteButton } from "@/components/quotes/delete-quote-button";
+import { EditQuoteDialog } from "@/components/quotes/edit-quote-dialog";
 import { hashCode } from "@/lib/book-detail";
 import { STATUS_CONFIG } from "@/lib/book-status";
 import { getBookDetailFromDb, getNotesForBookFromDb, getShelfOptionsFromDb } from "@/lib/db-books";
@@ -94,6 +96,7 @@ export default async function BookDetailPage({
             heightMm={detail.heightMm}
             depthMm={detail.depthMm}
             qrCode={detail.qrCode}
+            externalLink={detail.externalLink}
             shelfId={detail.shelfId}
             shelfPosition={detail.shelfPosition}
             shelves={shelves}
@@ -138,6 +141,18 @@ export default async function BookDetailPage({
             </p>
           )}
           <p className="mt-1.5 text-muted-foreground">{book.author}</p>
+
+          {detail.externalLink && (
+            <a
+              href={detail.externalLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/[0.06] px-3 py-1 text-xs font-medium text-gold transition-colors hover:bg-gold/[0.12]"
+            >
+              <ExternalLink className="size-3.5" />
+              Open book link
+            </a>
+          )}
 
           {(book.rating ||
             book.isFavorite ||
@@ -397,6 +412,13 @@ export default async function BookDetailPage({
                           year: "numeric",
                         })}
                       </span>
+                      <EditNoteDialog
+                        id={note.id}
+                        title={note.title}
+                        content={note.content}
+                        bookId={book.id}
+                        lockedBookLabel={book.title}
+                      />
                       <DeleteNoteButton id={note.id} />
                     </div>
                   </div>
@@ -424,7 +446,14 @@ export default async function BookDetailPage({
                   key={quote.id}
                   className="group relative rounded-xl border border-gold/20 bg-gold/[0.05] p-4"
                 >
-                  <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="absolute right-3 top-3 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <EditQuoteDialog
+                      id={quote.id}
+                      bookId={book.id}
+                      bookLabel={book.title}
+                      text={quote.text}
+                      pageNumber={quote.pageNumber}
+                    />
                     <DeleteQuoteButton id={quote.id} />
                   </div>
                   <p className="font-display pr-6 text-base italic leading-relaxed text-foreground">

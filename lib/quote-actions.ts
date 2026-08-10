@@ -42,6 +42,39 @@ export async function addQuote(input: QuoteFormInput): Promise<QuoteActionResult
   return { ok: true, id: quote.id };
 }
 
+export async function updateQuote(id: string, input: QuoteFormInput): Promise<QuoteActionResult> {
+  const user = await requireApprovedUser();
+  if (!user) return { ok: false, error: "You must be signed in to do that." };
+
+  const text = input.text.trim();
+  if (!text) {
+    return { ok: false, error: "Quote text is required." };
+  }
+
+  const existing = await prisma.quote.findUnique({
+    where: { id },
+    select: { book: { select: { userId: true } } },
+  });
+  if (!existing) {
+    return { ok: false, error: "Quote not found." };
+  }
+  if (existing.book.userId !== user.id && user.role !== "SUPER_ADMIN") {
+    return { ok: false, error: "You don't have permission to edit this quote." };
+  }
+
+  await prisma.quote.update({
+    where: { id },
+    data: {
+      text,
+      pageNumber: input.pageNumber ?? null,
+    },
+  });
+
+  revalidatePath("/quotes");
+  revalidatePath("/", "layout");
+  return { ok: true, id };
+}
+
 export async function deleteQuote(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await requireApprovedUser();
   if (!user) return { ok: false, error: "You must be signed in to do that." };

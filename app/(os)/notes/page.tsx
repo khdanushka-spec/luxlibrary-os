@@ -2,6 +2,7 @@ import Link from "next/link";
 import { NotebookText } from "lucide-react";
 import { AddNoteDialog } from "@/components/notes/add-note-dialog";
 import { DeleteNoteButton } from "@/components/notes/delete-note-button";
+import { EditNoteDialog } from "@/components/notes/edit-note-dialog";
 import { getAllBooksFromDb, getNotesFromDb } from "@/lib/db-books";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -70,6 +71,13 @@ export default async function NotesPage() {
                       year: "numeric",
                     })}
                   </span>
+                  <EditNoteDialog
+                    id={note.id}
+                    title={note.title}
+                    content={note.content}
+                    bookId={note.bookId || undefined}
+                    books={books.map((b) => ({ id: b.id, title: b.title, author: b.author }))}
+                  />
                   <DeleteNoteButton id={note.id} />
                 </div>
               </div>

@@ -11,10 +11,18 @@ export function BookCard({ book, index }: { book: MockBook; index: number }) {
     <Link href={`/library/${book.id}`} className="group block">
       <div
         className={cn(
-          "relative aspect-[2/3] w-full rounded-lg bg-gradient-to-br shadow-md transition-transform group-hover:-translate-y-1",
-          coverGradient(index)
+          "relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-transform group-hover:-translate-y-1",
+          !book.coverImageUrl && `bg-gradient-to-br ${coverGradient(index)}`
         )}
       >
+        {book.coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-pasted URLs, not worth whitelisting every possible cover host in next.config
+          <img
+            src={book.coverImageUrl}
+            alt={`${book.title} cover`}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
         <span
           className={cn(
             "absolute right-2 top-2 rounded-full border px-2 py-0.5 text-[0.65rem] font-medium",

@@ -12,12 +12,21 @@ export function BookListRow({ book, index }: { book: MockBook; index: number }) 
       href={`/library/${book.id}`}
       className="flex items-center gap-4 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-secondary/30"
     >
-      <div
-        className={cn(
-          "h-14 w-10 shrink-0 rounded bg-gradient-to-br",
-          coverGradient(index)
-        )}
-      />
+      {book.coverImageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-pasted URLs, not worth whitelisting every possible cover host in next.config
+        <img
+          src={book.coverImageUrl}
+          alt={`${book.title} cover`}
+          className="h-14 w-10 shrink-0 rounded object-cover"
+        />
+      ) : (
+        <div
+          className={cn(
+            "h-14 w-10 shrink-0 rounded bg-gradient-to-br",
+            coverGradient(index)
+          )}
+        />
+      )}
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
           {book.isFavorite && (

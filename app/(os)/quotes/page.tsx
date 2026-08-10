@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Quote as QuoteIcon } from "lucide-react";
 import { AddQuoteDialog } from "@/components/quotes/add-quote-dialog";
 import { DeleteQuoteButton } from "@/components/quotes/delete-quote-button";
+import { EditQuoteDialog } from "@/components/quotes/edit-quote-dialog";
 import { getAllBooksFromDb, getQuotesFromDb } from "@/lib/db-books";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -42,7 +43,14 @@ export default async function QuotesPage() {
               href={`/library/${book.id}`}
               className="group relative rounded-2xl border border-gold/20 bg-gold/[0.05] p-6 transition-colors hover:border-gold/40"
             >
-              <div className="absolute right-4 top-4 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute right-4 top-4 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                <EditQuoteDialog
+                  id={id}
+                  bookId={book.id}
+                  bookLabel={book.title}
+                  text={favoriteQuote}
+                  pageNumber={pageNumber}
+                />
                 <DeleteQuoteButton id={id} />
               </div>
               <p className="font-display pr-6 text-lg italic leading-relaxed text-foreground">

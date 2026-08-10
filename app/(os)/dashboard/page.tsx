@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <WelcomeBanner />
+      <WelcomeBanner name={user.name} />
       <StatTiles stats={stats} />
 
       <div className="grid gap-6 lg:grid-cols-3">

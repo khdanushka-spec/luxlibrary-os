@@ -123,6 +123,7 @@ model Book {
   shelf         Shelf?  @relation(fields: [shelfId], references: [id])
   shelfPosition Int?
   qrCode        String?
+  externalLink  String?
 
   summary          String? @db.Text
   aiSummary        String? @db.Text
