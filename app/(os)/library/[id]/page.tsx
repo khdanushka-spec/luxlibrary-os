@@ -71,6 +71,13 @@ export default async function BookDetailPage({
             tags={detail.tags.join(", ")}
             isFavorite={book.isFavorite}
             isRare={book.isRare}
+            subtitle={detail.subtitle}
+            isbn10={detail.isbn10}
+            originalPublicationYear={detail.originalPublicationYear}
+            country={detail.country}
+            isSigned={detail.isSigned}
+            isFirstEdition={detail.isFirstEdition}
+            isLimitedEdition={detail.isLimitedEdition}
           />
           <DeleteBookButton id={book.id} />
         </div>
@@ -96,10 +103,20 @@ export default async function BookDetailPage({
           <h1 className="font-display mt-3 text-3xl text-foreground sm:text-4xl">
             {book.title}
           </h1>
+          {detail.subtitle && (
+            <p className="font-display mt-0.5 text-lg text-muted-foreground">
+              {detail.subtitle}
+            </p>
+          )}
           <p className="mt-1.5 text-muted-foreground">{book.author}</p>
 
-          {(book.rating || book.isFavorite || book.isRare) && (
-            <div className="mt-3 flex items-center gap-3">
+          {(book.rating ||
+            book.isFavorite ||
+            book.isRare ||
+            detail.isSigned ||
+            detail.isFirstEdition ||
+            detail.isLimitedEdition) && (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               {book.rating && (
                 <div className="flex items-center gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -123,6 +140,21 @@ export default async function BookDetailPage({
                 <span className="flex items-center gap-1 text-xs text-gold">
                   <Gem className="size-3.5" />
                   Rare
+                </span>
+              )}
+              {detail.isSigned && (
+                <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-xs text-muted-foreground">
+                  Signed
+                </span>
+              )}
+              {detail.isFirstEdition && (
+                <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-xs text-muted-foreground">
+                  First edition
+                </span>
+              )}
+              {detail.isLimitedEdition && (
+                <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-xs text-muted-foreground">
+                  Limited edition
                 </span>
               )}
             </div>
@@ -229,7 +261,15 @@ export default async function BookDetailPage({
               ],
               ["Publisher", detail.publisher],
               ["Language", detail.language],
+              ["Country", detail.country],
               ["ISBN-13", detail.isbn13],
+              ["ISBN-10", detail.isbn10],
+              [
+                "Originally published",
+                detail.originalPublicationYear
+                  ? `${detail.originalPublicationYear}`
+                  : undefined,
+              ],
               ["Condition", detail.condition],
               [
                 "Purchase price",

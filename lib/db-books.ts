@@ -46,6 +46,9 @@ function toMockBook(book: DbBook): MockBook {
     completedAt: latestSession?.endedAt ? latestSession.endedAt.toISOString() : undefined,
     isFavorite: book.isFavorite || undefined,
     isRare: book.isRare || undefined,
+    isSigned: book.isSigned || undefined,
+    isFirstEdition: book.isFirstEdition || undefined,
+    isLimitedEdition: book.isLimitedEdition || undefined,
   };
 }
 
@@ -201,6 +204,13 @@ export async function getBookDetailFromDb(id: string) {
     aiSummary: book.aiSummary ?? undefined,
     favoriteQuote: book.quotes[0]?.text ?? null,
     tags: book.tags.map((t) => t.tag.name),
+    subtitle: book.subtitle ?? undefined,
+    isbn10: book.isbn10 ?? undefined,
+    originalPublicationYear: book.originalPublicationYear ?? undefined,
+    country: book.country ?? undefined,
+    isSigned: book.isSigned,
+    isFirstEdition: book.isFirstEdition,
+    isLimitedEdition: book.isLimitedEdition,
   };
 }
 

@@ -60,6 +60,13 @@ type EditBookDialogProps = {
   tags?: string;
   isFavorite?: boolean;
   isRare?: boolean;
+  subtitle?: string;
+  isbn10?: string;
+  originalPublicationYear?: number;
+  country?: string;
+  isSigned?: boolean;
+  isFirstEdition?: boolean;
+  isLimitedEdition?: boolean;
 };
 
 export function EditBookDialog({
@@ -89,6 +96,13 @@ export function EditBookDialog({
   tags: initialTags,
   isFavorite: initialIsFavorite,
   isRare: initialIsRare,
+  subtitle: initialSubtitle,
+  isbn10: initialIsbn10,
+  originalPublicationYear: initialOriginalPublicationYear,
+  country: initialCountry,
+  isSigned: initialIsSigned,
+  isFirstEdition: initialIsFirstEdition,
+  isLimitedEdition: initialIsLimitedEdition,
 }: EditBookDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -130,6 +144,15 @@ export function EditBookDialog({
   const [tags, setTags] = useState(initialTags ?? "");
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite ?? false);
   const [isRare, setIsRare] = useState(initialIsRare ?? false);
+  const [subtitle, setSubtitle] = useState(initialSubtitle ?? "");
+  const [isbn10, setIsbn10] = useState(initialIsbn10 ?? "");
+  const [originalPublicationYear, setOriginalPublicationYear] = useState(
+    initialOriginalPublicationYear ? String(initialOriginalPublicationYear) : ""
+  );
+  const [country, setCountry] = useState(initialCountry ?? "");
+  const [isSigned, setIsSigned] = useState(initialIsSigned ?? false);
+  const [isFirstEdition, setIsFirstEdition] = useState(initialIsFirstEdition ?? false);
+  const [isLimitedEdition, setIsLimitedEdition] = useState(initialIsLimitedEdition ?? false);
 
   useEffect(() => {
     if (!open) return;
@@ -172,6 +195,13 @@ export function EditBookDialog({
         tags: tags.trim() || undefined,
         isFavorite,
         isRare,
+        subtitle: subtitle.trim() || undefined,
+        isbn10: isbn10.trim() || undefined,
+        originalPublicationYear: originalPublicationYear ? Number(originalPublicationYear) : null,
+        country: country.trim() || undefined,
+        isSigned,
+        isFirstEdition,
+        isLimitedEdition,
       });
       if (result.ok) {
         setOpen(false);
@@ -232,6 +262,18 @@ export function EditBookDialog({
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
                     className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Subtitle
+                  </label>
+                  <input
+                    value={subtitle}
+                    onChange={(e) => setSubtitle(e.target.value)}
+                    placeholder="A Novel"
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                   />
                 </div>
 
@@ -378,6 +420,43 @@ export function EditBookDialog({
                       className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      ISBN-10
+                    </label>
+                    <input
+                      value={isbn10}
+                      onChange={(e) => setIsbn10(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Original pub. year
+                    </label>
+                    <input
+                      type="number"
+                      value={originalPublicationYear}
+                      onChange={(e) => setOriginalPublicationYear(e.target.value)}
+                      placeholder="If different from Year"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Country
+                  </label>
+                  <input
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    placeholder="United States"
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-3">
@@ -529,7 +608,7 @@ export function EditBookDialog({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-5">
+                <div className="grid grid-cols-2 gap-2">
                   <label className="flex items-center gap-2 text-sm text-foreground">
                     <input
                       type="checkbox"
@@ -547,6 +626,33 @@ export function EditBookDialog({
                       className="size-4 accent-gold"
                     />
                     Rare / special edition
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={isSigned}
+                      onChange={(e) => setIsSigned(e.target.checked)}
+                      className="size-4 accent-gold"
+                    />
+                    Signed
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={isFirstEdition}
+                      onChange={(e) => setIsFirstEdition(e.target.checked)}
+                      className="size-4 accent-gold"
+                    />
+                    First edition
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={isLimitedEdition}
+                      onChange={(e) => setIsLimitedEdition(e.target.checked)}
+                      className="size-4 accent-gold"
+                    />
+                    Limited edition
                   </label>
                 </div>
               </div>

@@ -48,6 +48,9 @@ export type MockBook = {
   completedAt?: string;
   isFavorite?: boolean;
   isRare?: boolean;
+  isSigned?: boolean;
+  isFirstEdition?: boolean;
+  isLimitedEdition?: boolean;
 };
 
 export const MOCK_BOOKS: MockBook[] = [

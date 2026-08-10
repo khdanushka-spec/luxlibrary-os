@@ -51,6 +51,13 @@ export function AddBookDialog() {
   const [tags, setTags] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [isRare, setIsRare] = useState(false);
+  const [subtitle, setSubtitle] = useState("");
+  const [isbn10, setIsbn10] = useState("");
+  const [originalPublicationYear, setOriginalPublicationYear] = useState("");
+  const [country, setCountry] = useState("");
+  const [isSigned, setIsSigned] = useState(false);
+  const [isFirstEdition, setIsFirstEdition] = useState(false);
+  const [isLimitedEdition, setIsLimitedEdition] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -83,6 +90,13 @@ export function AddBookDialog() {
     setTags("");
     setIsFavorite(false);
     setIsRare(false);
+    setSubtitle("");
+    setIsbn10("");
+    setOriginalPublicationYear("");
+    setCountry("");
+    setIsSigned(false);
+    setIsFirstEdition(false);
+    setIsLimitedEdition(false);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -110,6 +124,13 @@ export function AddBookDialog() {
         tags: tags.trim() || undefined,
         isFavorite,
         isRare,
+        subtitle: subtitle.trim() || undefined,
+        isbn10: isbn10.trim() || undefined,
+        originalPublicationYear: originalPublicationYear ? Number(originalPublicationYear) : null,
+        country: country.trim() || undefined,
+        isSigned,
+        isFirstEdition,
+        isLimitedEdition,
       });
       if (result.ok) {
         setSubmitted(true);
@@ -193,6 +214,18 @@ export function AddBookDialog() {
                       value={author}
                       onChange={(e) => setAuthor(e.target.value)}
                       placeholder="Erin Morgenstern"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Subtitle
+                    </label>
+                    <input
+                      value={subtitle}
+                      onChange={(e) => setSubtitle(e.target.value)}
+                      placeholder="A Novel"
                       className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                     />
                   </div>
@@ -325,6 +358,44 @@ export function AddBookDialog() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        ISBN-10
+                      </label>
+                      <input
+                        value={isbn10}
+                        onChange={(e) => setIsbn10(e.target.value)}
+                        placeholder="0385541213"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        Original pub. year
+                      </label>
+                      <input
+                        type="number"
+                        value={originalPublicationYear}
+                        onChange={(e) => setOriginalPublicationYear(e.target.value)}
+                        placeholder="If different from Year"
+                        className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Country
+                    </label>
+                    <input
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="United States"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-[1fr_auto] gap-3">
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
@@ -397,7 +468,7 @@ export function AddBookDialog() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-5">
+                  <div className="grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2 text-sm text-foreground">
                       <input
                         type="checkbox"
@@ -415,6 +486,33 @@ export function AddBookDialog() {
                         className="size-4 accent-gold"
                       />
                       Rare / special edition
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={isSigned}
+                        onChange={(e) => setIsSigned(e.target.checked)}
+                        className="size-4 accent-gold"
+                      />
+                      Signed
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={isFirstEdition}
+                        onChange={(e) => setIsFirstEdition(e.target.checked)}
+                        className="size-4 accent-gold"
+                      />
+                      First edition
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={isLimitedEdition}
+                        onChange={(e) => setIsLimitedEdition(e.target.checked)}
+                        className="size-4 accent-gold"
+                      />
+                      Limited edition
                     </label>
                   </div>
                 </div>

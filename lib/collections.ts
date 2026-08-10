@@ -42,7 +42,12 @@ export const COLLECTIONS: Collection[] = [
     slug: "rare-editions",
     title: "Rare & Leather-Bound",
     description: "The special editions on your shelves.",
-    filter: (b) => b.format === "Leather" || b.isRare === true,
+    filter: (b) =>
+      b.format === "Leather" ||
+      b.isRare === true ||
+      b.isSigned === true ||
+      b.isFirstEdition === true ||
+      b.isLimitedEdition === true,
   },
   {
     slug: "this-decade",

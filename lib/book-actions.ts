@@ -30,6 +30,13 @@ export type BookFormInput = {
   tags?: string;
   isFavorite?: boolean;
   isRare?: boolean;
+  subtitle?: string;
+  isbn10?: string;
+  originalPublicationYear?: number | null;
+  country?: string;
+  isSigned?: boolean;
+  isFirstEdition?: boolean;
+  isLimitedEdition?: boolean;
 };
 
 export type BookActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -119,6 +126,13 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         insuranceValue: input.insuranceValue ?? undefined,
         isFavorite: input.isFavorite ?? false,
         isRare: input.isRare ?? false,
+        subtitle: input.subtitle?.trim() || undefined,
+        isbn10: input.isbn10?.trim() || undefined,
+        originalPublicationYear: input.originalPublicationYear ?? undefined,
+        country: input.country?.trim() || undefined,
+        isSigned: input.isSigned ?? false,
+        isFirstEdition: input.isFirstEdition ?? false,
+        isLimitedEdition: input.isLimitedEdition ?? false,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
@@ -209,6 +223,13 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         insuranceValue: input.insuranceValue ?? null,
         isFavorite: input.isFavorite ?? false,
         isRare: input.isRare ?? false,
+        subtitle: input.subtitle?.trim() || null,
+        isbn10: input.isbn10?.trim() || null,
+        originalPublicationYear: input.originalPublicationYear ?? null,
+        country: input.country?.trim() || null,
+        isSigned: input.isSigned ?? false,
+        isFirstEdition: input.isFirstEdition ?? false,
+        isLimitedEdition: input.isLimitedEdition ?? false,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },
