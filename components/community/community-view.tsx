@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Info, MessageCircle, Pin, Search, Users, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { MessageBubble } from "./message-bubble";
 import { Composer } from "./composer";
 import { MembersPanel } from "./members-panel";
@@ -38,6 +39,32 @@ const POLL_INTERVAL_MS = 4000;
 const TYPING_PING_THROTTLE_MS = 3000;
 const NEAR_BOTTOM_THRESHOLD_PX = 150;
 
+type ViewMessage = CommunityMessageView & { pending?: boolean };
+
+function toggleReactionLocally(message: ViewMessage, emoji: string): ViewMessage {
+  const reactions = message.reactions.map((r) => ({ ...r }));
+  const myIndex = reactions.findIndex((r) => r.reactedByMe);
+  const myEmoji = myIndex >= 0 ? reactions[myIndex].emoji : null;
+
+  if (myIndex >= 0) {
+    reactions[myIndex].count -= 1;
+    reactions[myIndex].reactedByMe = false;
+    if (reactions[myIndex].count <= 0) reactions.splice(myIndex, 1);
+  }
+
+  if (myEmoji !== emoji) {
+    const target = reactions.find((r) => r.emoji === emoji);
+    if (target) {
+      target.count += 1;
+      target.reactedByMe = true;
+    } else {
+      reactions.push({ emoji, count: 1, reactedByMe: true });
+    }
+  }
+
+  return { ...message, reactions };
+}
+
 function dayLabel(iso: string) {
   const date = new Date(iso);
   const today = new Date();
@@ -68,7 +95,7 @@ export function CommunityView({
   myBooks: ShareableBook[];
 }) {
   const [community, setCommunity] = useState(initialCommunity);
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState<ViewMessage[]>(initialMessages);
   const [members, setMembers] = useState(initialMembers);
   const [typingNames, setTypingNames] = useState<string[]>([]);
   const [isMuted, setIsMuted] = useState(initialIsMuted);
@@ -151,11 +178,48 @@ export function CommunityView({
   async function handleSend(content: string, replyToId?: string) {
     setReplyTo(null);
     isNearBottomRef.current = true;
+
+    const replySource = replyToId ? messages.find((m) => m.id === replyToId) : undefined;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const optimisticMessage: ViewMessage = {
+      id: tempId,
+      type: "TEXT",
+      content,
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      isAdminAuthor: currentUser.isAdmin,
+      createdAt: new Date().toISOString(),
+      isEdited: false,
+      isDeleted: false,
+      deletedByName: null,
+      isPinned: false,
+      replyTo: replySource
+        ? { id: replySource.id, authorName: replySource.authorName, snippet: replySource.content ?? "" }
+        : null,
+      forwardedFromAuthorName: null,
+      sharedBook: null,
+      poll: null,
+      reactions: [],
+      starredByMe: false,
+      pending: true,
+    };
+    // Shows the message immediately instead of waiting on sendMessage + a
+    // full feed refetch; the feed refetch below still replaces this with
+    // the real row (and quietly drops it if the send actually failed).
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     const result = await sendMessage({ content, replyToId });
     if (result.ok) {
       const feed = await getCommunityFeed();
       if (!("error" in feed)) setMessages(feed.messages);
+    } else {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
+  }
+
+  function handleReact(id: string, emoji: string) {
+    setMessages((prev) => prev.map((m) => (m.id === id ? toggleReactionLocally(m, emoji) : m)));
+    void refreshAfter(toggleReaction(id, emoji));
   }
 
   async function handleSaveEdit(id: string, content: string) {
@@ -263,7 +327,7 @@ export function CommunityView({
               const showDayDivider = !prev || dayLabel(prev.createdAt) !== dayLabel(message.createdAt);
               const showUnreadDivider = message.id === firstUnreadMessageId;
               return (
-                <div key={message.id}>
+                <div key={message.id} className={cn(message.pending && "opacity-60 transition-opacity")}>
                   {showDayDivider && (
                     <div className="my-4 flex items-center justify-center">
                       <span className="rounded-full bg-secondary/60 px-3 py-1 text-[0.68rem] font-medium text-muted-foreground">
@@ -287,7 +351,7 @@ export function CommunityView({
                     onReply={setReplyTo}
                     onEdit={setEditing}
                     onDelete={(id) => refreshAfter(deleteMessage(id))}
-                    onReact={(id, emoji) => refreshAfter(toggleReaction(id, emoji))}
+                    onReact={handleReact}
                     onPin={(id) => refreshAfter(togglePin(id))}
                     onStar={(id) => refreshAfter(toggleStar(id))}
                     onForward={(msg) => refreshAfter(forwardMessage(msg.id))}

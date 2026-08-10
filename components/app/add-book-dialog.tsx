@@ -209,10 +209,11 @@ export function AddBookDialog() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-gold px-4 text-sm font-medium text-gold-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        aria-label="Add Book"
+        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-gold px-3 text-sm font-medium text-gold-foreground transition-transform hover:scale-[1.02] active:scale-[0.98] sm:px-4"
       >
         <Plus className="size-4" />
-        Add Book
+        <span className="hidden sm:inline">Add Book</span>
       </button>
 
       {open && createPortal(

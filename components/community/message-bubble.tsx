@@ -52,7 +52,7 @@ export function MessageBubble({
   onForward,
   onVote,
 }: {
-  message: CommunityMessageView;
+  message: CommunityMessageView & { pending?: boolean };
   isOwn: boolean;
   isViewerAdmin: boolean;
   showSenderName: boolean;
@@ -133,7 +133,7 @@ export function MessageBubble({
             )}
           </div>
 
-          {!message.isDeleted && (
+          {!message.isDeleted && !message.pending && (
             <div
               className={cn(
                 "absolute top-1 flex items-center opacity-0 transition-opacity group-hover:opacity-100",
@@ -277,7 +277,7 @@ export function MessageBubble({
 
         <div className="mt-1 flex items-center gap-1 px-1 text-[0.68rem] text-muted-foreground">
           {message.starredByMe && <Star className="size-2.5 fill-gold text-gold" />}
-          <span>{formatTime(message.createdAt)}</span>
+          {message.pending ? <span>Sending…</span> : <span>{formatTime(message.createdAt)}</span>}
           {message.isEdited && <span>· edited</span>}
         </div>
       </div>

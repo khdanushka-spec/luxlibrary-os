@@ -19,8 +19,13 @@ export default async function OsLayout({ children }: { children: React.ReactNode
     <div className="flex min-h-screen w-full">
       <AppSidebar isSuperAdmin={user.role === "SUPER_ADMIN"} communityUnreadCount={communityUnreadCount} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AppTopbar userName={user.name} userEmail={user.email} />
-        <main className="flex-1 px-6 py-8 lg:px-10">{children}</main>
+        <AppTopbar
+          userName={user.name}
+          userEmail={user.email}
+          isSuperAdmin={user.role === "SUPER_ADMIN"}
+          communityUnreadCount={communityUnreadCount}
+        />
+        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10">{children}</main>
       </div>
     </div>
   );
