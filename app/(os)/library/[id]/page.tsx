@@ -15,6 +15,7 @@ import { getBookDetailFromDb, getNotesForBookFromDb, getShelfOptionsFromDb } fro
 import { coverGradient } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
+import { wasBookSharedWithMember } from "@/lib/community";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,9 @@ export default async function BookDetailPage({
     getNotesForBookFromDb(id),
   ]);
   if (!detail) notFound();
-  if (detail.userId !== user.id && user.role !== "SUPER_ADMIN") notFound();
+
+  const canManage = detail.userId === user.id || user.role === "SUPER_ADMIN";
+  if (!canManage && !(await wasBookSharedWithMember(id, user.id))) notFound();
 
   const { book } = detail;
   const status = STATUS_CONFIG[book.status];
@@ -50,12 +53,13 @@ export default async function BookDetailPage({
     <div className="mx-auto max-w-4xl">
       <div className="mb-6 flex items-center justify-between gap-4">
         <Link
-          href="/library"
+          href={canManage ? "/library" : "/community"}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-          Back to Library
+          {canManage ? "Back to Library" : "Back to Community"}
         </Link>
+        {canManage && (
         <div className="flex items-center gap-3">
           <EditBookDialog
             id={book.id}
@@ -104,6 +108,7 @@ export default async function BookDetailPage({
           />
           <DeleteBookButton id={book.id} />
         </div>
+        )}
       </div>
 
       <div className="grid gap-8 sm:grid-cols-[200px_1fr]">
@@ -141,6 +146,12 @@ export default async function BookDetailPage({
             </p>
           )}
           <p className="mt-1.5 text-muted-foreground">{book.author}</p>
+
+          {!canManage && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Shared in BringBooks Community
+            </p>
+          )}
 
           {detail.externalLink && (
             <a
@@ -217,11 +228,13 @@ export default async function BookDetailPage({
             )}
           </div>
 
+          {canManage && (
           <div className="mt-5 flex items-center gap-1.5 text-sm text-gold">
             <MapPin className="size-4" />
             Shelf {detail.shelf}
             {detail.shelfPosition ? `, position ${detail.shelfPosition}` : ""}
           </div>
+          )}
 
           {book.status === "reading" && book.readingProgressPercent !== undefined && (
             <div className="mt-5 max-w-xs">
@@ -282,7 +295,7 @@ export default async function BookDetailPage({
           </div>
         )}
 
-        {detail.personalReview && (
+        {canManage && detail.personalReview && (
           <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
             <h3 className="mb-3 text-sm font-medium text-foreground">Your Review</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -291,7 +304,7 @@ export default async function BookDetailPage({
           </div>
         )}
 
-        {detail.personalNotes && (
+        {canManage && detail.personalNotes && (
           <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
             <h3 className="mb-3 text-sm font-medium text-foreground">Personal Notes</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -321,37 +334,43 @@ export default async function BookDetailPage({
               ],
               ["Condition", detail.condition],
               [
-                "Purchase price",
-                detail.purchasePrice ? `$${detail.purchasePrice.toFixed(2)}` : undefined,
-              ],
-              [
-                "Purchased",
-                detail.purchaseDate
-                  ? new Date(detail.purchaseDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    }) + (detail.purchaseSeller ? ` from ${detail.purchaseSeller}` : "")
-                  : detail.purchaseSeller
-                    ? `From ${detail.purchaseSeller}`
-                    : undefined,
-              ],
-              [
-                "Market value",
-                detail.currentMarketValue ? `$${detail.currentMarketValue.toFixed(2)}` : undefined,
-              ],
-              [
-                "Insured value",
-                detail.insuranceValue ? `$${detail.insuranceValue.toFixed(2)}` : undefined,
-              ],
-              [
                 "Dimensions",
                 detail.widthMm || detail.heightMm || detail.depthMm
                   ? `${detail.widthMm ?? "?"} × ${detail.heightMm ?? "?"} × ${detail.depthMm ?? "?"} mm`
                   : undefined,
               ],
               ["Weight", detail.weightGrams ? `${detail.weightGrams} g` : undefined],
-              ["QR code", detail.qrCode],
+              // Purchase/ownership details stay private to the owner, even
+              // when this page is reached via a community book share.
+              ...(canManage
+                ? [
+                    [
+                      "Purchase price",
+                      detail.purchasePrice ? `$${detail.purchasePrice.toFixed(2)}` : undefined,
+                    ],
+                    [
+                      "Purchased",
+                      detail.purchaseDate
+                        ? new Date(detail.purchaseDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }) + (detail.purchaseSeller ? ` from ${detail.purchaseSeller}` : "")
+                        : detail.purchaseSeller
+                          ? `From ${detail.purchaseSeller}`
+                          : undefined,
+                    ],
+                    [
+                      "Market value",
+                      detail.currentMarketValue ? `$${detail.currentMarketValue.toFixed(2)}` : undefined,
+                    ],
+                    [
+                      "Insured value",
+                      detail.insuranceValue ? `$${detail.insuranceValue.toFixed(2)}` : undefined,
+                    ],
+                    ["QR code", detail.qrCode],
+                  ]
+                : []),
             ]
               .filter(([, value]) => value)
               .map(([label, value]) => (
@@ -386,6 +405,7 @@ export default async function BookDetailPage({
           )}
         </div>
 
+        {canManage && (
         <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -430,6 +450,7 @@ export default async function BookDetailPage({
             <p className="text-xs text-muted-foreground">No notes yet for this book.</p>
           )}
         </div>
+        )}
 
         <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -437,7 +458,7 @@ export default async function BookDetailPage({
               <Quote className="size-4 text-gold" />
               Quotes
             </h3>
-            <AddQuoteDialog lockedBookId={book.id} lockedBookLabel={book.title} />
+            {canManage && <AddQuoteDialog lockedBookId={book.id} lockedBookLabel={book.title} />}
           </div>
           {detail.quotes.length > 0 ? (
             <div className="space-y-4">
@@ -446,16 +467,18 @@ export default async function BookDetailPage({
                   key={quote.id}
                   className="group relative rounded-xl border border-gold/20 bg-gold/[0.05] p-4"
                 >
-                  <div className="absolute right-3 top-3 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                    <EditQuoteDialog
-                      id={quote.id}
-                      bookId={book.id}
-                      bookLabel={book.title}
-                      text={quote.text}
-                      pageNumber={quote.pageNumber}
-                    />
-                    <DeleteQuoteButton id={quote.id} />
-                  </div>
+                  {canManage && (
+                    <div className="absolute right-3 top-3 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <EditQuoteDialog
+                        id={quote.id}
+                        bookId={book.id}
+                        bookLabel={book.title}
+                        text={quote.text}
+                        pageNumber={quote.pageNumber}
+                      />
+                      <DeleteQuoteButton id={quote.id} />
+                    </div>
+                  )}
                   <p className="font-display pr-6 text-base italic leading-relaxed text-foreground">
                     {quote.text}
                   </p>

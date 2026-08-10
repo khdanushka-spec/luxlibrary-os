@@ -50,6 +50,19 @@ enum UserStatus {
   REJECTED
 }
 
+enum CommunityMemberStatus {
+  ACTIVE
+  LEFT
+  REMOVED
+  BANNED
+}
+
+enum CommunityMessageType {
+  TEXT
+  POLL
+  BOOK_SHARE
+}
+
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -65,6 +78,13 @@ model User {
   books    Book[]
   shelves  Shelf[]
   notes    Note[]
+
+  communityMemberships CommunityMember[]
+  communityMessages    CommunityMessage[]  @relation("CommunityMessageAuthor")
+  deletedMessages      CommunityMessage[]  @relation("CommunityMessageDeletedBy")
+  messageReactions     MessageReaction[]
+  messageStars         MessageStar[]
+  pollVotes            PollVote[]
 }
 
 model Session {
@@ -146,6 +166,7 @@ model Book {
   quotes          Quote[]
   notes           Note[]
   readingSessions ReadingSession[]
+  communityShares CommunityMessage[]
 
   @@unique([userId, isbn13])
   @@unique([userId, qrCode])
@@ -263,4 +284,137 @@ model ReadingSession {
   endedAt    DateTime?
   minutesRead Int?
   pagesRead  Int?
+}
+
+// There is deliberately only ever one row in this table - BringBooks ships
+// with a single community, not a discovery system for many. See
+// lib/community.ts's getOrCreateCommunity for the auto-create-on-first-use.
+model Community {
+  id  String @id @default(cuid())
+  // BringBooks ships one community, not many - this fixed key lets
+  // getOrCreateCommunity() upsert atomically instead of racing a
+  // findFirst-then-create across concurrent requests.
+  singletonKey String  @unique @default("bringbooks-community")
+  name         String
+  description  String? @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  members  CommunityMember[]
+  messages CommunityMessage[]
+}
+
+model CommunityMember {
+  id          String                @id @default(cuid())
+  communityId String
+  community   Community             @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      CommunityMemberStatus @default(ACTIVE)
+  isMuted     Boolean               @default(false)
+  lastReadAt  DateTime              @default(now())
+  lastSeenAt  DateTime              @default(now())
+  typingUntil DateTime?
+  joinedAt    DateTime              @default(now())
+
+  @@unique([communityId, userId])
+  @@index([communityId, status])
+}
+
+model CommunityMessage {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User      @relation("CommunityMessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  type    CommunityMessageType @default(TEXT)
+  content String?              @db.Text
+
+  replyToId String?
+  replyTo   CommunityMessage?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies   CommunityMessage[] @relation("MessageReplies")
+
+  forwardedFromId String?
+  forwardedFrom   CommunityMessage?  @relation("MessageForwards", fields: [forwardedFromId], references: [id], onDelete: SetNull)
+  forwards        CommunityMessage[] @relation("MessageForwards")
+
+  sharedBookId String?
+  sharedBook   Book?   @relation(fields: [sharedBookId], references: [id], onDelete: SetNull)
+
+  poll Poll?
+
+  isPinned   Boolean   @default(false)
+  pinnedAt   DateTime?
+  pinnedById String?
+
+  isEdited Boolean   @default(false)
+  editedAt DateTime?
+
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  deletedById String?
+  deletedBy   User?     @relation("CommunityMessageDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  reactions MessageReaction[]
+  stars     MessageStar[]
+
+  @@index([communityId, createdAt])
+  @@index([replyToId])
+}
+
+model MessageReaction {
+  id        String           @id @default(cuid())
+  messageId String
+  message   CommunityMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String
+  createdAt DateTime         @default(now())
+
+  @@unique([messageId, userId])
+}
+
+model MessageStar {
+  id        String           @id @default(cuid())
+  messageId String
+  message   CommunityMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([messageId, userId])
+}
+
+model Poll {
+  id        String           @id @default(cuid())
+  messageId String           @unique
+  message   CommunityMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  question  String
+  createdAt DateTime         @default(now())
+
+  options PollOption[]
+}
+
+model PollOption {
+  id     String @id @default(cuid())
+  pollId String
+  poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label  String
+
+  votes PollVote[]
+}
+
+model PollVote {
+  id        String     @id @default(cuid())
+  pollId    String
+  optionId  String
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([pollId, userId])
 }

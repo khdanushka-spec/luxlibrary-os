@@ -7,7 +7,13 @@ import { LogoMark } from "@/components/home/logo-mark";
 import { NAV_FOOTER_ITEMS, NAV_GROUPS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
-export function AppSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
+export function AppSidebar({
+  isSuperAdmin,
+  communityUnreadCount = 0,
+}: {
+  isSuperAdmin: boolean;
+  communityUnreadCount?: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -29,6 +35,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               {group.items.map((item) => {
                 const active =
                   pathname === item.href || pathname.startsWith(item.href + "/");
+                const unread = item.href === "/community" ? communityUnreadCount : 0;
                 return (
                   <Link
                     key={item.href}
@@ -41,7 +48,12 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                     )}
                   >
                     <item.icon className="size-4" />
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {unread > 0 && (
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5 text-[0.68rem] font-semibold text-gold-foreground">
+                        {unread > 99 ? "99+" : unread}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

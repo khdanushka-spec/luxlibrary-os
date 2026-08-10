@@ -10,6 +10,7 @@ import {
   Layers,
   LayoutGrid,
   Library,
+  MessageCircle,
   NotebookText,
   Quote,
   Search,
@@ -63,6 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Quotes", href: "/quotes", icon: Quote },
       { label: "Notes", href: "/notes", icon: NotebookText },
       { label: "Timeline", href: "/timeline", icon: Clock },
+      { label: "Community", href: "/community", icon: MessageCircle },
     ],
   },
   {
