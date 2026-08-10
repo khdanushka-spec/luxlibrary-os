@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { BookCondition, BookFormat, ReadingStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { duplicateKeyMessage, isUniqueConstraintError } from "@/lib/prisma-errors";
+import { requireApprovedUser } from "@/lib/auth";
 
 export type BookFormInput = {
   title: string;
@@ -83,6 +84,9 @@ export async function resolveTagIds(tags: string | undefined): Promise<string[]>
 }
 
 export async function addBook(input: BookFormInput): Promise<BookActionResult> {
+  const user = await requireApprovedUser();
+  if (!user) return { ok: false, error: "You must be signed in to do that." };
+
   const title = input.title.trim();
   const author = input.author.trim();
 
@@ -176,6 +180,9 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
 export type UpdateBookInput = BookFormInput & { rating: number | null };
 
 export async function updateBook(id: string, input: UpdateBookInput): Promise<BookActionResult> {
+  const user = await requireApprovedUser();
+  if (!user) return { ok: false, error: "You must be signed in to do that." };
+
   const title = input.title.trim();
   const author = input.author.trim();
 
@@ -283,6 +290,9 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
 }
 
 export async function deleteBook(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await requireApprovedUser();
+  if (!user) return { ok: false, error: "You must be signed in to do that." };
+
   await prisma.book.delete({ where: { id } });
   revalidatePath("/", "layout");
   return { ok: true };

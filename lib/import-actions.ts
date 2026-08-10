@@ -6,6 +6,7 @@ import { resolvePublisherId, resolveSeriesId, resolveTagIds } from "@/lib/book-a
 import { parseBookCsv } from "@/lib/csv";
 import { duplicateKeyMessage, isUniqueConstraintError } from "@/lib/prisma-errors";
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/auth";
 
 const FORMAT_VALUES: BookFormat[] = ["HARDCOVER", "PAPERBACK", "LEATHER", "EBOOK", "AUDIOBOOK"];
 const STATUS_VALUES: ReadingStatus[] = ["WISHLIST", "UNREAD", "READING", "COMPLETED", "DNF"];
@@ -40,6 +41,11 @@ export type BulkImportResult = {
 };
 
 export async function bulkImportBooks(csvText: string): Promise<BulkImportResult> {
+  const user = await requireApprovedUser();
+  if (!user) {
+    return { created: 0, updated: 0, skipped: [{ row: 0, reason: "You must be signed in to do that." }] };
+  }
+
   const { rows, skipped: parseSkipped } = parseBookCsv(csvText);
   const skipped = [...parseSkipped];
   let created = 0;

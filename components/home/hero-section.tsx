@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link";
 import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
 import { HeroPreviewCard } from "./hero-preview-card";
 
@@ -53,13 +54,13 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
         >
-          <a
-            href="/dashboard"
+          <Link
+            href="/login"
             className="group inline-flex h-12 items-center gap-2 rounded-full bg-gold px-7 text-[0.95rem] font-medium text-gold-foreground shadow-[0_0_0_1px_rgba(212,166,87,0.3),0_8px_30px_-8px_rgba(212,166,87,0.55)] transition-transform hover:scale-[1.02] active:scale-[0.99]"
           >
             Enter your library
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-          </a>
+          </Link>
           <a
             href="#ai-librarian"
             className="inline-flex h-12 items-center gap-2 rounded-full border border-border px-7 text-[0.95rem] font-medium text-foreground transition-colors hover:bg-secondary"

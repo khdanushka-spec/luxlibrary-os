@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/auth";
 
 export type NoteFormInput = {
   title?: string;
@@ -12,6 +13,9 @@ export type NoteFormInput = {
 export type NoteActionResult = { ok: true; id: string } | { ok: false; error: string };
 
 export async function addNote(input: NoteFormInput): Promise<NoteActionResult> {
+  const user = await requireApprovedUser();
+  if (!user) return { ok: false, error: "You must be signed in to do that." };
+
   const content = input.content.trim();
   if (!content) {
     return { ok: false, error: "Note content is required." };
@@ -30,7 +34,10 @@ export async function addNote(input: NoteFormInput): Promise<NoteActionResult> {
   return { ok: true, id: note.id };
 }
 
-export async function deleteNote(id: string): Promise<{ ok: true }> {
+export async function deleteNote(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await requireApprovedUser();
+  if (!user) return { ok: false, error: "You must be signed in to do that." };
+
   await prisma.note.delete({ where: { id } });
   revalidatePath("/notes");
   revalidatePath("/", "layout");

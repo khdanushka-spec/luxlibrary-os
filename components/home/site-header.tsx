@@ -51,14 +51,14 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <a
-            href="#"
+          <Link
+            href="/login"
             className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"
           >
             Sign in
-          </a>
+          </Link>
           <Button
-            render={<a href="/dashboard" />}
+            render={<Link href="/login" />}
             nativeButton={false}
             className="h-9 rounded-full bg-gold px-4 text-[0.85rem] font-medium text-gold-foreground hover:bg-gold/90"
           >

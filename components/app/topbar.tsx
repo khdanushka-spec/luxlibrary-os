@@ -1,7 +1,8 @@
 import { Search } from "lucide-react";
 import { AddBookDialog } from "./add-book-dialog";
+import { UserMenu } from "./user-menu";
 
-export function AppTopbar() {
+export function AppTopbar({ userName, userEmail }: { userName: string; userEmail: string }) {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-border/60 bg-background/80 px-6 py-3.5 backdrop-blur-xl">
       <form action="/search" className="relative w-full max-w-sm">
@@ -16,9 +17,7 @@ export function AppTopbar() {
 
       <div className="flex items-center gap-3">
         <AddBookDialog />
-        <div className="flex size-9 items-center justify-center rounded-full bg-secondary text-sm font-medium text-foreground">
-          D
-        </div>
+        <UserMenu name={userName} email={userEmail} />
       </div>
     </header>
   );
