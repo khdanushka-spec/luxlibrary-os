@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, Gem, Heart, MapPin, Quote, Sparkles, Star, Tag } from "lucide-react";
+import { ArrowLeft, BookOpen, Gem, Heart, MapPin, NotebookText, Quote, Sparkles, Star, Tag } from "lucide-react";
 import { DeleteBookButton } from "@/components/library/delete-book-button";
 import { EditBookDialog } from "@/components/library/edit-book-dialog";
+import { AddNoteDialog } from "@/components/notes/add-note-dialog";
+import { DeleteNoteButton } from "@/components/notes/delete-note-button";
+import { AddQuoteDialog } from "@/components/quotes/add-quote-dialog";
+import { DeleteQuoteButton } from "@/components/quotes/delete-quote-button";
 import { hashCode } from "@/lib/book-detail";
 import { STATUS_CONFIG } from "@/lib/book-status";
-import { getBookDetailFromDb, getShelfOptionsFromDb } from "@/lib/db-books";
+import { getBookDetailFromDb, getNotesForBookFromDb, getShelfOptionsFromDb } from "@/lib/db-books";
 import { coverGradient } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
@@ -29,9 +33,10 @@ export default async function BookDetailPage({
 }) {
   const { id } = await params;
   const user = (await getCurrentUser())!;
-  const [detail, shelves] = await Promise.all([
+  const [detail, shelves, notes] = await Promise.all([
     getBookDetailFromDb(id),
     getShelfOptionsFromDb(user.id),
+    getNotesForBookFromDb(id),
   ]);
   if (!detail) notFound();
   if (detail.userId !== user.id && user.role !== "SUPER_ADMIN") notFound();
@@ -99,12 +104,21 @@ export default async function BookDetailPage({
       </div>
 
       <div className="grid gap-8 sm:grid-cols-[200px_1fr]">
-        <div
-          className={cn(
-            "aspect-[2/3] w-full rounded-xl bg-gradient-to-br shadow-lg",
-            coverGradient(hashCode(book.id))
-          )}
-        />
+        {detail.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-pasted URLs, not worth whitelisting every possible cover host in next.config
+          <img
+            src={detail.coverImageUrl}
+            alt={`${book.title} cover`}
+            className="aspect-[2/3] w-full rounded-xl object-cover shadow-lg"
+          />
+        ) : (
+          <div
+            className={cn(
+              "aspect-[2/3] w-full rounded-xl bg-gradient-to-br shadow-lg",
+              coverGradient(hashCode(book.id))
+            )}
+          />
+        )}
 
         <div>
           <span
@@ -354,6 +368,76 @@ export default async function BookDetailPage({
             <p className="text-xs text-muted-foreground">
               No tags yet — add some from Edit.
             </p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <NotebookText className="size-4 text-gold" />
+              Notes
+            </h3>
+            <AddNoteDialog lockedBookId={book.id} lockedBookLabel={book.title} />
+          </div>
+          {notes.length > 0 ? (
+            <div className="space-y-4">
+              {notes.map((note) => (
+                <div key={note.id} className="rounded-xl border border-border/70 bg-secondary/20 p-4">
+                  <div className="mb-1.5 flex items-baseline justify-between gap-4">
+                    {note.title ? (
+                      <p className="text-sm font-medium text-foreground">{note.title}</p>
+                    ) : (
+                      <span />
+                    )}
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(note.date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <DeleteNoteButton id={note.id} />
+                    </div>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{note.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No notes yet for this book.</p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-border/70 bg-card/60 p-6 sm:col-span-2">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Quote className="size-4 text-gold" />
+              Quotes
+            </h3>
+            <AddQuoteDialog lockedBookId={book.id} lockedBookLabel={book.title} />
+          </div>
+          {detail.quotes.length > 0 ? (
+            <div className="space-y-4">
+              {detail.quotes.map((quote) => (
+                <div
+                  key={quote.id}
+                  className="group relative rounded-xl border border-gold/20 bg-gold/[0.05] p-4"
+                >
+                  <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
+                    <DeleteQuoteButton id={quote.id} />
+                  </div>
+                  <p className="font-display pr-6 text-base italic leading-relaxed text-foreground">
+                    {quote.text}
+                  </p>
+                  {quote.pageNumber && (
+                    <p className="mt-2 text-xs text-muted-foreground">p. {quote.pageNumber}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No quotes saved from this book yet.</p>
           )}
         </div>
       </div>

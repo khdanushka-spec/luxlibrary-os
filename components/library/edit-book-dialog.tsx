@@ -64,6 +64,7 @@ type EditBookDialogProps = {
   isFavorite?: boolean;
   isRare?: boolean;
   subtitle?: string;
+  coverImageUrl?: string;
   isbn10?: string;
   originalPublicationYear?: number;
   country?: string;
@@ -109,6 +110,7 @@ export function EditBookDialog({
   isFavorite: initialIsFavorite,
   isRare: initialIsRare,
   subtitle: initialSubtitle,
+  coverImageUrl: initialCoverImageUrl,
   isbn10: initialIsbn10,
   originalPublicationYear: initialOriginalPublicationYear,
   country: initialCountry,
@@ -165,6 +167,7 @@ export function EditBookDialog({
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite ?? false);
   const [isRare, setIsRare] = useState(initialIsRare ?? false);
   const [subtitle, setSubtitle] = useState(initialSubtitle ?? "");
+  const [coverImageUrl, setCoverImageUrl] = useState(initialCoverImageUrl ?? "");
   const [isbn10, setIsbn10] = useState(initialIsbn10 ?? "");
   const [originalPublicationYear, setOriginalPublicationYear] = useState(
     initialOriginalPublicationYear ? String(initialOriginalPublicationYear) : ""
@@ -228,6 +231,7 @@ export function EditBookDialog({
         isFavorite,
         isRare,
         subtitle: subtitle.trim() || undefined,
+        coverImageUrl: coverImageUrl.trim() || undefined,
         isbn10: isbn10.trim() || undefined,
         originalPublicationYear: originalPublicationYear ? Number(originalPublicationYear) : null,
         country: country.trim() || undefined,
@@ -312,6 +316,18 @@ export function EditBookDialog({
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
                     placeholder="A Novel"
+                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Cover image URL
+                  </label>
+                  <input
+                    value={coverImageUrl}
+                    onChange={(e) => setCoverImageUrl(e.target.value)}
+                    placeholder="https://…"
                     className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                   />
                 </div>

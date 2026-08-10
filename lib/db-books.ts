@@ -184,6 +184,17 @@ export async function getNotesFromDb(userId: string): Promise<MockNote[]> {
   }));
 }
 
+export async function getNotesForBookFromDb(bookId: string): Promise<MockNote[]> {
+  const notes = await prisma.note.findMany({ where: { bookId }, orderBy: { createdAt: "desc" } });
+  return notes.map((n) => ({
+    id: n.id,
+    bookId: n.bookId ?? "",
+    date: n.createdAt.toISOString().slice(0, 10),
+    content: n.content,
+    title: n.title ?? undefined,
+  }));
+}
+
 export async function getBookDetailFromDb(id: string) {
   const book = await prisma.book.findUnique({
     where: { id },
@@ -215,8 +226,12 @@ export async function getBookDetailFromDb(id: string) {
     summary: book.summary ?? undefined,
     aiSummary: book.aiSummary ?? undefined,
     favoriteQuote: book.quotes[0]?.text ?? null,
+    quotes: book.quotes
+      .map((q) => ({ id: q.id, text: q.text, pageNumber: q.pageNumber ?? undefined }))
+      .sort((a, b) => (a.pageNumber ?? 0) - (b.pageNumber ?? 0)),
     tags: book.tags.map((t) => t.tag.name),
     subtitle: book.subtitle ?? undefined,
+    coverImageUrl: book.coverImageUrl ?? undefined,
     isbn10: book.isbn10 ?? undefined,
     originalPublicationYear: book.originalPublicationYear ?? undefined,
     country: book.country ?? undefined,

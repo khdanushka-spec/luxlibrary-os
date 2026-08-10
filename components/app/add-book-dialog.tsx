@@ -56,6 +56,7 @@ export function AddBookDialog() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isRare, setIsRare] = useState(false);
   const [subtitle, setSubtitle] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
   const [isbn10, setIsbn10] = useState("");
   const [originalPublicationYear, setOriginalPublicationYear] = useState("");
   const [country, setCountry] = useState("");
@@ -109,6 +110,7 @@ export function AddBookDialog() {
     setIsFavorite(false);
     setIsRare(false);
     setSubtitle("");
+    setCoverImageUrl("");
     setIsbn10("");
     setOriginalPublicationYear("");
     setCountry("");
@@ -151,6 +153,7 @@ export function AddBookDialog() {
         isFavorite,
         isRare,
         subtitle: subtitle.trim() || undefined,
+        coverImageUrl: coverImageUrl.trim() || undefined,
         isbn10: isbn10.trim() || undefined,
         originalPublicationYear: originalPublicationYear ? Number(originalPublicationYear) : null,
         country: country.trim() || undefined,
@@ -259,6 +262,18 @@ export function AddBookDialog() {
                       value={subtitle}
                       onChange={(e) => setSubtitle(e.target.value)}
                       placeholder="A Novel"
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Cover image URL
+                    </label>
+                    <input
+                      value={coverImageUrl}
+                      onChange={(e) => setCoverImageUrl(e.target.value)}
+                      placeholder="https://…"
                       className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-gold/40 focus:outline-none"
                     />
                   </div>

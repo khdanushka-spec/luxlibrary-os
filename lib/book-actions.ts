@@ -33,6 +33,7 @@ export type BookFormInput = {
   isFavorite?: boolean;
   isRare?: boolean;
   subtitle?: string;
+  coverImageUrl?: string;
   isbn10?: string;
   originalPublicationYear?: number | null;
   country?: string;
@@ -158,6 +159,7 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         isFavorite: input.isFavorite ?? false,
         isRare: input.isRare ?? false,
         subtitle: input.subtitle?.trim() || undefined,
+        coverImageUrl: input.coverImageUrl?.trim() || undefined,
         isbn10: input.isbn10?.trim() || undefined,
         originalPublicationYear: input.originalPublicationYear ?? undefined,
         country: input.country?.trim() || undefined,
@@ -277,6 +279,7 @@ export async function updateBook(id: string, input: UpdateBookInput): Promise<Bo
         isFavorite: input.isFavorite ?? false,
         isRare: input.isRare ?? false,
         subtitle: input.subtitle?.trim() || null,
+        coverImageUrl: input.coverImageUrl?.trim() || null,
         isbn10: input.isbn10?.trim() || null,
         originalPublicationYear: input.originalPublicationYear ?? null,
         country: input.country?.trim() || null,

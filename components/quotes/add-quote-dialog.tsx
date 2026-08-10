@@ -8,13 +8,22 @@ import { addQuote } from "@/lib/quote-actions";
 
 type BookOption = { id: string; title: string; author: string };
 
-export function AddQuoteDialog({ books }: { books: BookOption[] }) {
+export function AddQuoteDialog({
+  books = [],
+  lockedBookId,
+  lockedBookLabel,
+}: {
+  books?: BookOption[];
+  /** When set, the book picker is hidden and every quote is attached to this book (used on a Book Detail page). */
+  lockedBookId?: string;
+  lockedBookLabel?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const [bookId, setBookId] = useState("");
+  const [bookId, setBookId] = useState(lockedBookId ?? "");
   const [text, setText] = useState("");
   const [pageNumber, setPageNumber] = useState("");
 
@@ -30,7 +39,7 @@ export function AddQuoteDialog({ books }: { books: BookOption[] }) {
   function close() {
     setOpen(false);
     setError(null);
-    setBookId("");
+    setBookId(lockedBookId ?? "");
     setText("");
     setPageNumber("");
   }
@@ -84,24 +93,30 @@ export function AddQuoteDialog({ books }: { books: BookOption[] }) {
               <h3 className="font-display mb-5 text-xl text-foreground">Add a Quote</h3>
 
               <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Book *
-                  </label>
-                  <select
-                    required
-                    value={bookId}
-                    onChange={(e) => setBookId(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
-                  >
-                    <option value="">Select a book…</option>
-                    {books.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.title} — {b.author}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {lockedBookId ? (
+                  <p className="text-xs text-muted-foreground">
+                    For <span className="text-foreground">{lockedBookLabel}</span>
+                  </p>
+                ) : (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Book *
+                    </label>
+                    <select
+                      required
+                      value={bookId}
+                      onChange={(e) => setBookId(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    >
+                      <option value="">Select a book…</option>
+                      {books.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.title} — {b.author}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">

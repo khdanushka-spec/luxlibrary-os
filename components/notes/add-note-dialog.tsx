@@ -8,7 +8,16 @@ import { addNote } from "@/lib/note-actions";
 
 type BookOption = { id: string; title: string; author: string };
 
-export function AddNoteDialog({ books }: { books: BookOption[] }) {
+export function AddNoteDialog({
+  books = [],
+  lockedBookId,
+  lockedBookLabel,
+}: {
+  books?: BookOption[];
+  /** When set, the book picker is hidden and every note is attached to this book (used on a Book Detail page). */
+  lockedBookId?: string;
+  lockedBookLabel?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +25,7 @@ export function AddNoteDialog({ books }: { books: BookOption[] }) {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [bookId, setBookId] = useState("");
+  const [bookId, setBookId] = useState(lockedBookId ?? "");
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +41,7 @@ export function AddNoteDialog({ books }: { books: BookOption[] }) {
     setError(null);
     setTitle("");
     setContent("");
-    setBookId("");
+    setBookId(lockedBookId ?? "");
   }
 
   function handleSubmit(e: FormEvent) {
@@ -84,23 +93,29 @@ export function AddNoteDialog({ books }: { books: BookOption[] }) {
               <h3 className="font-display mb-5 text-xl text-foreground">Add a Note</h3>
 
               <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    Book
-                  </label>
-                  <select
-                    value={bookId}
-                    onChange={(e) => setBookId(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
-                  >
-                    <option value="">General note</option>
-                    {books.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.title} — {b.author}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {lockedBookId ? (
+                  <p className="text-xs text-muted-foreground">
+                    For <span className="text-foreground">{lockedBookLabel}</span>
+                  </p>
+                ) : (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Book
+                    </label>
+                    <select
+                      value={bookId}
+                      onChange={(e) => setBookId(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border/70 bg-secondary/40 px-2.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+                    >
+                      <option value="">General note</option>
+                      {books.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.title} — {b.author}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
