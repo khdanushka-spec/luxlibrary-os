@@ -124,6 +124,11 @@ export function MessageBubble({
               <p>This message was deleted{message.deletedByName && !isOwn ? ` by ${message.deletedByName}` : ""}</p>
             ) : message.type === "BOOK_SHARE" && message.sharedBook ? (
               <BookShareCard book={message.sharedBook} />
+            ) : message.type === "BOOK_SHARE" ? (
+              // The shared book (or its owner's account) was deleted after
+              // this message was sent - sharedBookId sets null on delete,
+              // but the message row and its BOOK_SHARE type persist.
+              <p className="italic text-muted-foreground">This shared book is no longer available.</p>
             ) : message.type === "POLL" && message.poll ? (
               <PollCard poll={message.poll} onVote={(optionId) => onVote(message.poll!.id, optionId)} />
             ) : (
