@@ -15,21 +15,24 @@ export default async function PendingPage() {
   if (user.status === "APPROVED") redirect("/dashboard");
 
   const rejected = user.status === "REJECTED";
+  const disabled = user.status === "DISABLED";
 
   return (
     <div className="glass rounded-2xl border border-border/70 p-6 text-center shadow-2xl">
-      {rejected ? (
+      {rejected || disabled ? (
         <XCircle className="mx-auto mb-4 size-10 text-rose-400" />
       ) : (
         <Clock className="mx-auto mb-4 size-10 text-gold" />
       )}
       <h1 className="font-display text-xl text-foreground">
-        {rejected ? "Access denied" : "Waiting for approval"}
+        {disabled ? "Account disabled" : rejected ? "Access denied" : "Waiting for approval"}
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        {rejected
-          ? "Your request to join this library was declined."
-          : `Hi ${user.name}, your account is signed up but hasn't been approved yet. Once the library owner approves it, you'll be able to sign in and browse the collection.`}
+        {disabled
+          ? "Your access to this library has been disabled by the library owner."
+          : rejected
+            ? "Your request to join this library was declined."
+            : `Hi ${user.name}, your account is signed up but hasn't been approved yet. Once the library owner approves it, you'll be able to sign in and browse the collection.`}
       </p>
       <div className="mt-6">
         <LogoutButton />

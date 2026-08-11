@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { UserRowActions } from "@/components/admin/user-row-actions";
+import { MemberRowActions } from "@/components/admin/member-row-actions";
 import { requireSuperAdmin } from "@/lib/auth";
 import { getAllUsers } from "@/lib/admin-actions";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 const STATUS_STYLES: Record<string, string> = {
   PENDING: "border-gold/40 text-gold bg-gold/10",
   APPROVED: "border-emerald-400/40 text-emerald-400 bg-emerald-400/10",
+  DISABLED: "border-rose-400/40 text-rose-400 bg-rose-400/10",
   REJECTED: "border-rose-400/40 text-rose-400 bg-rose-400/10",
 };
 
@@ -84,14 +86,17 @@ export default async function AdminPage() {
                 </p>
                 <p className="truncate text-xs text-muted-foreground">{u.email}</p>
               </div>
-              <span
-                className={cn(
-                  "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium",
-                  STATUS_STYLES[u.status]
-                )}
-              >
-                {u.status}
-              </span>
+              <div className="flex shrink-0 items-center gap-3">
+                <span
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-medium",
+                    STATUS_STYLES[u.status]
+                  )}
+                >
+                  {u.status}
+                </span>
+                {u.id !== admin.id && <MemberRowActions userId={u.id} status={u.status} />}
+              </div>
             </div>
           ))}
         </div>

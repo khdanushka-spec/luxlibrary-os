@@ -14,7 +14,7 @@ import {
 } from "@/lib/auth";
 
 export type AuthResult =
-  | { ok: true; status: "APPROVED" | "PENDING" | "REJECTED" }
+  | { ok: true; status: "APPROVED" | "PENDING" | "DISABLED" | "REJECTED" }
   | { ok: false; error: string };
 
 async function createSessionForUser(userId: string) {
