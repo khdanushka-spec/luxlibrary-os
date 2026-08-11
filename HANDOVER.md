@@ -10,6 +10,8 @@ Two more increments on top of session 32, both committed and pushed:
 
 **Test data note**: the "Regular Member" (`verify-community-member@example.com`) throwaway test account used since session 30 was **permanently deleted this session** while testing the new Delete feature (deliberate — it was the obvious, safe thing to test Delete against). A fresh `verify-community-member2@example.com` was created, used, and deleted again for the reinstate test. If a future session needs a second non-admin test identity, create a new one — don't expect either of these emails to still exist. `verify-community-admin@example.com` (SUPER_ADMIN test account) is untouched and still there.
 
+3. **Test message cleanup** (data only, no code changed, no commit — "Ask Dhanu or use judgment" from the open questions list, judgment used): pulled every message in the one real community with author+content+timestamp via a temp diagnostic route, cross-referenced against who's a real account (Dhanu, Nanduni, Test DKNS) vs. the `verify-community-admin@example.com` test persona, and hard-deleted the 9 messages unambiguously authored by the test persona (the original "Hello everyone, welcome to BringBooks!" onboarding message, "Hi Dhanu, glad you found it!", the demo poll, the demo "Share Test Book" book-share, plus 5 scattered one-off test strings from sessions 31-33, two of which were already soft-deleted placeholder rows). The `deleteMany` was scoped with an `author.email` filter as a safety net against ever touching a real message even if an ID were mistyped. **Deliberately left untouched**: every message from Dhanu/Nanduni/Test DKNS, including ones that read like casual banter ("Wellcome All", "Great idea", "hi") — no way to be fully certain what's "real early usage" vs. them also just testing, so the conservative call was to only remove content unambiguously mine. The community now reads as a plausible real conversation with no test filler. `verify-community-admin@example.com` itself was left as a member (still useful for future admin-feature testing) — only its message content was cleaned, not the account.
+
 ---
 
 # Handover — 2026-08-11 (session 32, "hide previous messages" / "next" / "add mobile friendly and high speed")
@@ -74,11 +76,10 @@ Previously `handleSend`/reactions did `await action(); const feed = await getCom
 
 ## Next steps
 Nothing known outstanding from sessions 32 or 33 — see session 33's summary at the top for what's shipped since this section was originally written.
-1. Same open item as session 31: decide whether to clean out the accumulated test data in the one real community. Ask Dhanu or use judgment.
-2. If ever revisiting typing-indicator or auto-scroll verification for real: needs either two genuinely concurrent real user sessions, or a lower-latency test environment than this one's current DB round-trip times.
-3. Nothing else outstanding from the community chat spec — every core feature (text/reply/edit/delete/reactions/pin/star/forward/polls/@mentions/search/mute/leave-rejoin/admin toolkit/book-share/join-time-history-hiding/mobile nav/optimistic UI/reinstate) has been built and verified at this point across sessions 30-33. Site-wide admin member management (disable/enable/delete) was also added in session 33, outside the original community-chat spec.
+1. If ever revisiting typing-indicator or auto-scroll verification for real: needs either two genuinely concurrent real user sessions, or a lower-latency test environment than this one's current DB round-trip times.
+2. Nothing else outstanding from the community chat spec — every core feature (text/reply/edit/delete/reactions/pin/star/forward/polls/@mentions/search/mute/leave-rejoin/admin toolkit/book-share/join-time-history-hiding/mobile nav/optimistic UI/reinstate) has been built and verified at this point across sessions 30-33. Site-wide admin member management (disable/enable/delete) was also added in session 33, outside the original community-chat spec.
 
 ## Open questions (carried over from session 31/32, still unanswered)
-- Should the test messages/accounts in the live community be cleaned up before Dhanu considers this fully launched?
+- ~~Should the test messages/accounts in the live community be cleaned up before Dhanu considers this fully launched?~~ **Resolved in session 33** — test messages purged (see summary at top item 3); test accounts left as-is (harmless, still useful for testing).
 - ~~Ban vs Remove still has no "reinstate" admin UI.~~ **Resolved in session 33** — see summary at top.
 - The "New messages" divider / unread-count design (no per-message read receipts) was a scope call made without asking Dhanu directly — flag in case she expected WhatsApp-style double-checkmarks-per-message.
