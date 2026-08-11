@@ -75,6 +75,12 @@ model User {
   approvedAt   DateTime?
   approvedById String?
 
+  reduceMotion           Boolean @default(false)
+  aiReadingSuggestions   Boolean @default(true)
+  autoGenerateSummaries  Boolean @default(true)
+  readingStreakReminders Boolean @default(true)
+  weeklyDigest           Boolean @default(false)
+
   sessions Session[]
   books    Book[]
   shelves  Shelf[]

@@ -5,6 +5,7 @@ import type { BookCondition, BookFormat, ReadingStatus } from "@/generated/prism
 import { prisma } from "@/lib/prisma";
 import { duplicateKeyMessage, isUniqueConstraintError } from "@/lib/prisma-errors";
 import { requireApprovedUser } from "@/lib/auth";
+import { generateAutoSummary } from "@/lib/book-summary";
 
 export type BookFormInput = {
   title: string;
@@ -175,6 +176,9 @@ export async function addBook(input: BookFormInput): Promise<BookActionResult> {
         externalLink: input.externalLink?.trim() || undefined,
         shelfId: input.shelfId || undefined,
         shelfPosition: input.shelfId ? input.shelfPosition ?? undefined : undefined,
+        aiSummary: user.autoGenerateSummaries
+          ? generateAutoSummary({ title, author, genre: input.genre, pages: input.pages ?? undefined })
+          : undefined,
         contributors: {
           create: { authorId: authorRecord.id, role: "AUTHOR" },
         },

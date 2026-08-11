@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/app/sidebar";
 import { AppTopbar } from "@/components/app/topbar";
 import { getCurrentUser } from "@/lib/auth";
 import { ensureMembership, getOrCreateCommunity, getUnreadCount } from "@/lib/community";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   const communityUnreadCount = await getUnreadCount(community.id, user.id);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className={cn("flex min-h-screen w-full", user.reduceMotion && "reduce-motion")}>
       <AppSidebar isSuperAdmin={user.role === "SUPER_ADMIN"} communityUnreadCount={communityUnreadCount} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar

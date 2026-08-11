@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function SettingsToggle({
   label,
   description,
-  defaultChecked = false,
+  checked,
+  onChange,
+  disabled,
 }: {
   label: string;
   description: string;
-  defaultChecked?: boolean;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }) {
-  const [checked, setChecked] = useState(defaultChecked);
-
   return (
     <div className="flex items-center justify-between gap-4 py-3.5">
       <div>
@@ -23,9 +24,10 @@ export function SettingsToggle({
       <button
         role="switch"
         aria-checked={checked}
-        onClick={() => setChecked((v) => !v)}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
         className={cn(
-          "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50",
           checked ? "bg-gold" : "bg-secondary"
         )}
       >

@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
   const currentlyReading = getCurrentlyReading(books);
   const completedThisYear = getCompletedThisYear(books);
-  const todaysPick = getTodaysPick(books);
+  const todaysPick = user.aiReadingSuggestions ? getTodaysPick(books) : null;
   const insights = getAiInsights(books, completedThisYear.length);
 
   return (
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <TodaysPickCard pick={todaysPick} />
+          {todaysPick && <TodaysPickCard pick={todaysPick} />}
           <ContinueReadingList items={currentlyReading} />
         </div>
         <div className="space-y-6">
