@@ -17,6 +17,7 @@ import type {
 } from "./types";
 import {
   adminBanMember,
+  adminReinstateMember,
   adminRemoveMember,
   adminUpdateCommunity,
   createPoll,
@@ -82,6 +83,7 @@ export function CommunityView({
   currentUser,
   initialMessages,
   initialMembers,
+  initialInactiveMembers,
   firstUnreadMessageId,
   isMuted: initialIsMuted,
   myBooks,
@@ -90,6 +92,7 @@ export function CommunityView({
   currentUser: CurrentUserSummary;
   initialMessages: CommunityMessageView[];
   initialMembers: CommunityMemberView[];
+  initialInactiveMembers: CommunityMemberView[];
   firstUnreadMessageId: string | null;
   isMuted: boolean;
   myBooks: ShareableBook[];
@@ -97,6 +100,7 @@ export function CommunityView({
   const [community, setCommunity] = useState(initialCommunity);
   const [messages, setMessages] = useState<ViewMessage[]>(initialMessages);
   const [members, setMembers] = useState(initialMembers);
+  const [inactiveMembers, setInactiveMembers] = useState(initialInactiveMembers);
   const [typingNames, setTypingNames] = useState<string[]>([]);
   const [isMuted, setIsMuted] = useState(initialIsMuted);
 
@@ -163,6 +167,7 @@ export function CommunityView({
       if ("error" in feed) return;
       setMessages(feed.messages);
       setMembers(feed.members);
+      setInactiveMembers(feed.inactiveMembers);
       setTypingNames(feed.typingNames);
     }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
@@ -237,6 +242,7 @@ export function CommunityView({
     if (!("error" in feed)) {
       setMessages(feed.messages);
       setMembers(feed.members);
+      setInactiveMembers(feed.inactiveMembers);
     }
   }
 
@@ -400,6 +406,8 @@ export function CommunityView({
           }}
           onRemoveMember={(userId) => refreshAfter(adminRemoveMember(userId))}
           onBanMember={(userId) => refreshAfter(adminBanMember(userId))}
+          inactiveMembers={inactiveMembers}
+          onReinstateMember={(userId) => refreshAfter(adminReinstateMember(userId))}
         />
       </div>
 
@@ -423,6 +431,8 @@ export function CommunityView({
               }}
               onRemoveMember={(userId) => refreshAfter(adminRemoveMember(userId))}
               onBanMember={(userId) => refreshAfter(adminBanMember(userId))}
+              inactiveMembers={inactiveMembers}
+              onReinstateMember={(userId) => refreshAfter(adminReinstateMember(userId))}
               onClose={() => setInfoPanelOpen(false)}
             />
           </div>

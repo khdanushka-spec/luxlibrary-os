@@ -212,6 +212,23 @@ export async function getCommunityMembers(communityId: string): Promise<Communit
   }));
 }
 
+export async function getInactiveCommunityMembers(communityId: string): Promise<CommunityMemberView[]> {
+  const members = await prisma.communityMember.findMany({
+    where: { communityId, status: { in: ["REMOVED", "BANNED"] } },
+    include: { user: { select: { id: true, name: true, email: true, role: true } } },
+    orderBy: { joinedAt: "desc" },
+  });
+  return members.map((m) => ({
+    userId: m.userId,
+    name: m.user.name,
+    email: m.user.email,
+    isAdmin: m.user.role === "SUPER_ADMIN",
+    isOnline: false,
+    status: m.status,
+    joinedAt: m.joinedAt.toISOString(),
+  }));
+}
+
 export async function getMessages(
   communityId: string,
   currentUserId: string,

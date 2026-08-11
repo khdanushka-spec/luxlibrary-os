@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, LogOut, MoreVertical, Pencil, ShieldCheck, UserX, X } from "lucide-react";
+import { Bell, BellOff, LogOut, MoreVertical, Pencil, RotateCcw, ShieldCheck, UserX, X } from "lucide-react";
 import { MemberAvatar } from "./member-avatar";
 import type { CommunityMemberView, CommunitySummary, CurrentUserSummary } from "./types";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ export function MembersPanel({
   onUpdateCommunity,
   onRemoveMember,
   onBanMember,
+  inactiveMembers,
+  onReinstateMember,
   onClose,
 }: {
   community: CommunitySummary;
@@ -27,6 +29,8 @@ export function MembersPanel({
   onUpdateCommunity: (name: string, description: string) => void;
   onRemoveMember: (userId: string) => void;
   onBanMember: (userId: string) => void;
+  inactiveMembers: CommunityMemberView[];
+  onReinstateMember: (userId: string) => void;
   onClose?: () => void;
 }) {
   const [editingInfo, setEditingInfo] = useState(false);
@@ -167,6 +171,37 @@ export function MembersPanel({
             ))}
           </div>
         </div>
+
+        {currentUser.isAdmin && inactiveMembers.length > 0 && (
+          <div className="mt-5">
+            <h4 className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Removed &amp; banned
+            </h4>
+            <div className="space-y-0.5">
+              {inactiveMembers.map((m) => (
+                <div
+                  key={m.userId}
+                  className="flex items-center gap-2.5 rounded-lg px-1.5 py-2 hover:bg-secondary/40"
+                >
+                  <MemberAvatar name={m.name} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-foreground">{m.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {m.status === "BANNED" ? "Banned" : "Removed"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onReinstateMember(m.userId)}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/70 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-gold/40 hover:text-gold"
+                  >
+                    <RotateCcw className="size-3" />
+                    Reinstate
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-0.5 border-t border-border/60 p-3">

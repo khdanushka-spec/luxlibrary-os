@@ -7,6 +7,7 @@ import type { Community, CommunityMember, User } from "@/generated/prisma";
 import {
   ensureMembership,
   getCommunityMembers,
+  getInactiveCommunityMembers,
   getMembership,
   getMessages,
   getOrCreateCommunity,
@@ -331,6 +332,7 @@ export async function pingTyping(): Promise<ActionResult> {
 export type CommunityFeed = {
   messages: CommunityMessageView[];
   members: CommunityMemberView[];
+  inactiveMembers: CommunityMemberView[];
   typingNames: string[];
 };
 
@@ -348,13 +350,15 @@ export async function getCommunityFeed(): Promise<CommunityFeed | { error: strin
     data: { lastSeenAt: new Date(), lastReadAt: new Date() },
   });
 
-  const [messages, members, typingNames] = await Promise.all([
+  const isAdmin = ctx.user.role === "SUPER_ADMIN";
+  const [messages, members, inactiveMembers, typingNames] = await Promise.all([
     getMessages(ctx.community.id, ctx.user.id, ctx.member.joinedAt),
     getCommunityMembers(ctx.community.id),
+    isAdmin ? getInactiveCommunityMembers(ctx.community.id) : Promise.resolve([]),
     getTypingMemberNames(ctx.community.id, ctx.user.id),
   ]);
 
-  return { messages, members, typingNames };
+  return { messages, members, inactiveMembers, typingNames };
 }
 
 export async function pingPresence(): Promise<ActionResult> {
@@ -445,6 +449,23 @@ export async function adminBanMember(userId: string): Promise<ActionResult> {
   await prisma.communityMember.updateMany({
     where: { communityId: ctx.community.id, userId },
     data: { status: "BANNED" },
+  });
+
+  revalidatePath("/community");
+  return { ok: true };
+}
+
+export async function adminReinstateMember(userId: string): Promise<ActionResult> {
+  const ctx = await requireAdmin();
+  if ("error" in ctx) return { ok: false, error: ctx.error };
+
+  // Fresh joinedAt/lastReadAt, same as a normal rejoin - a reinstated
+  // member shouldn't suddenly see everything said while they were
+  // removed/banned, matching how leave->rejoin already behaves.
+  const now = new Date();
+  await prisma.communityMember.updateMany({
+    where: { communityId: ctx.community.id, userId },
+    data: { status: "ACTIVE", joinedAt: now, lastReadAt: now },
   });
 
   revalidatePath("/community");

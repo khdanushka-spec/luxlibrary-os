@@ -5,6 +5,7 @@ import { getAllBooksFromDb } from "@/lib/db-books";
 import {
   getCommunityMembers,
   getFirstUnreadMessageId,
+  getInactiveCommunityMembers,
   getMembership,
   getMessages,
   getOrCreateCommunity,
@@ -69,9 +70,11 @@ export default async function CommunityPage() {
 
   const firstUnreadId = await getFirstUnreadMessageId(community.id, user.id, member.lastReadAt);
 
-  const [messages, members, myBooks] = await Promise.all([
+  const isAdmin = user.role === "SUPER_ADMIN";
+  const [messages, members, inactiveMembers, myBooks] = await Promise.all([
     getMessages(community.id, user.id, member.joinedAt),
     getCommunityMembers(community.id),
+    isAdmin ? getInactiveCommunityMembers(community.id) : Promise.resolve([]),
     getAllBooksFromDb(user.id),
   ]);
 
@@ -83,9 +86,10 @@ export default async function CommunityPage() {
   return (
     <CommunityView
       community={{ id: community.id, name: community.name, description: community.description }}
-      currentUser={{ id: user.id, name: user.name, isAdmin: user.role === "SUPER_ADMIN" }}
+      currentUser={{ id: user.id, name: user.name, isAdmin }}
       initialMessages={messages}
       initialMembers={members}
+      initialInactiveMembers={inactiveMembers}
       firstUnreadMessageId={firstUnreadId}
       isMuted={member.isMuted}
       myBooks={myBooks.map((b) => ({
