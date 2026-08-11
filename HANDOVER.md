@@ -1,3 +1,17 @@
+# Handover — 2026-08-11 (session 33, "next" x2 — member delete/disable/enable, then reinstate)
+
+## Session 33 summary (read this first, then the session 32 content below is still accurate background)
+Two more increments on top of session 32, both committed and pushed:
+
+1. **Site-wide admin member management** (`6566234`): the `/admin` page's "All Members" list only showed a status badge, no actions. Added `DISABLED` to `UserStatus` (migration `20260811060659_add_user_disabled_status`) plus `disableUser`/`enableUser`/`deleteUser` in `lib/admin-actions.ts`, all `requireSuperAdmin()`-gated and guarded against acting on your own account (self-lockout prevention). New `components/admin/member-row-actions.tsx` renders Disable/Enable + two-click-confirm Delete per row (excluded on the current admin's own row). `/pending` now has a third message branch for `DISABLED` ("Your access to this library has been disabled..."). Delete cascades cleanly — every `User` relation in the schema already cascades or sets-null, verified by inspection before writing the action, not just assumed.
+2. **Community "Reinstate" control** (`afc1ff4`): the open question from session 31/32 ("Ban vs Remove has no reinstate UI") is now closed. New `getInactiveCommunityMembers()` (`lib/community.ts`) and `adminReinstateMember()` (`lib/community-actions.ts`) — reinstate resets `joinedAt`/`lastReadAt` to now, same as a normal rejoin, so a reinstated member doesn't suddenly see everything said while they were away (consistent with session 32's join-time message hiding). `CommunityFeed`'s type gained an `inactiveMembers` field (admin-only, empty array otherwise) so it rides the existing 4s poll instead of needing a separate fetch path. `MembersPanel` shows a "Removed & banned" section (admin-only, only rendered when non-empty) with a Reinstate button per row.
+
+**Both verified**, but the DB connectivity was rough for a sustained stretch this session (see Gotchas) — full-page loads of `/admin`/`/community` repeatedly hit the known `2829966751@E394` transient error, well beyond the "1-3 reloads" pattern documented in earlier sessions. **Found a genuinely useful workaround**: a lean, single-or-few-query API route succeeds far more reliably than a full page render (which fires many queries in parallel via `Promise.all`) under the same connectivity conditions. Used this to verify the reinstate feature's actual Prisma logic (remove → check inactive list → reinstate → confirm `joinedAt`/`lastReadAt` both bumped → confirm inactive list empties) even when `/admin` and `/community` themselves wouldn't reliably load. Disable/Enable/Delete on the site-wide admin page WERE verified through the real UI (that connectivity stretch hadn't started yet).
+
+**Test data note**: the "Regular Member" (`verify-community-member@example.com`) throwaway test account used since session 30 was **permanently deleted this session** while testing the new Delete feature (deliberate — it was the obvious, safe thing to test Delete against). A fresh `verify-community-member2@example.com` was created, used, and deleted again for the reinstate test. If a future session needs a second non-admin test identity, create a new one — don't expect either of these emails to still exist. `verify-community-admin@example.com` (SUPER_ADMIN test account) is untouched and still there.
+
+---
+
 # Handover — 2026-08-11 (session 32, "hide previous messages" / "next" / "add mobile friendly and high speed")
 
 ## Goal
@@ -59,12 +73,12 @@ Previously `handleSend`/reactions did `await action(); const feed = await getCom
 - **Deleted before every commit, confirmed gone**: `app/api/dev-check-tmp/route.ts` (recreated and deleted three separate times this session for different diagnostic needs — membership checks, login-as, typing/unread-count reads, test-data cleanup).
 
 ## Next steps
-No known follow-through work from this session — all three asks are shipped and verified to the extent this environment allows (see the typing-indicator and auto-scroll caveats above, both judged low-risk).
-1. Same open item as session 31: decide whether to clean out the accumulated test data in the one real community (now includes this session's test messages too, all cleaned up — but "message sent AFTER fresh join test" type artifacts could recur if testing continues this way). Ask Dhanu or use judgment.
+Nothing known outstanding from sessions 32 or 33 — see session 33's summary at the top for what's shipped since this section was originally written.
+1. Same open item as session 31: decide whether to clean out the accumulated test data in the one real community. Ask Dhanu or use judgment.
 2. If ever revisiting typing-indicator or auto-scroll verification for real: needs either two genuinely concurrent real user sessions, or a lower-latency test environment than this one's current DB round-trip times.
-3. Nothing else outstanding from the community chat spec — every core feature (text/reply/edit/delete/reactions/pin/star/forward/polls/@mentions/search/mute/leave-rejoin/admin toolkit/book-share/join-time-history-hiding/mobile nav/optimistic UI) has been built and verified at this point across sessions 30-32.
+3. Nothing else outstanding from the community chat spec — every core feature (text/reply/edit/delete/reactions/pin/star/forward/polls/@mentions/search/mute/leave-rejoin/admin toolkit/book-share/join-time-history-hiding/mobile nav/optimistic UI/reinstate) has been built and verified at this point across sessions 30-33. Site-wide admin member management (disable/enable/delete) was also added in session 33, outside the original community-chat spec.
 
-## Open questions (carried over from session 31, still unanswered)
+## Open questions (carried over from session 31/32, still unanswered)
 - Should the test messages/accounts in the live community be cleaned up before Dhanu considers this fully launched?
-- Ban vs Remove still has no "reinstate" admin UI.
+- ~~Ban vs Remove still has no "reinstate" admin UI.~~ **Resolved in session 33** — see summary at top.
 - The "New messages" divider / unread-count design (no per-message read receipts) was a scope call made without asking Dhanu directly — flag in case she expected WhatsApp-style double-checkmarks-per-message.
