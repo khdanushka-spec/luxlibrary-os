@@ -7,7 +7,6 @@ import {
   getTopAuthorsFromDb,
   getTopGenresFromDb,
 } from "@/lib/db-books";
-import { MOCK_STATS } from "@/lib/mock-data";
 import { getCompletedThisYear } from "@/lib/reading";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -43,7 +42,7 @@ export default async function ProfilePage() {
     { icon: BookMarked, label: "Books in collection", value: stats.totalBooks },
     { icon: Star, label: "Average rating", value: avgRating ? avgRating.toFixed(1) : "—" },
     { icon: DollarSign, label: "Collection value", value: `$${stats.collectionValueUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}` },
-    { icon: Flame, label: "Reading streak", value: `${MOCK_STATS.readingStreakDays} days` },
+    { icon: Flame, label: "Reading streak", value: `${user.readingStreakDays} days` },
   ];
 
   return (
@@ -82,7 +81,7 @@ export default async function ProfilePage() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <ReadingChallengeRing completed={completedThisYear.length} />
+        <ReadingChallengeRing completed={completedThisYear.length} initialGoal={user.readingChallengeGoal} />
 
         <div className="rounded-2xl border border-border/70 bg-card/60 p-6">
           <h3 className="mb-4 text-sm font-medium text-foreground">Highlights</h3>

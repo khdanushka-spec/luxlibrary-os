@@ -27,7 +27,7 @@ export default async function ReadingPage() {
   const completedThisYear = getCompletedThisYear(books);
   const dnfBooks = getDnfBooks(books);
   const monthly = getMonthlyReadingCounts(books);
-  const stats = getReadingStats(books);
+  const stats = getReadingStats(books, user.readingStreakDays);
 
   const statTiles = [
     { icon: BookOpen, label: "Currently reading", value: stats.currentlyReadingCount },
@@ -98,7 +98,7 @@ export default async function ReadingPage() {
           </div>
         </div>
 
-        <ReadingChallengeRing completed={completedThisYear.length} />
+        <ReadingChallengeRing completed={completedThisYear.length} initialGoal={user.readingChallengeGoal} />
       </div>
 
       <div className="rounded-2xl border border-border/70 bg-card/60 p-6">

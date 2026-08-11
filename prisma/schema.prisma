@@ -81,6 +81,9 @@ model User {
   readingStreakReminders Boolean @default(true)
   weeklyDigest           Boolean @default(false)
 
+  readingStreakDays    Int @default(0)
+  readingChallengeGoal Int @default(60)
+
   sessions Session[]
   books    Book[]
   shelves  Shelf[]

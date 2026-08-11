@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <WelcomeBanner name={user.name} />
+      <WelcomeBanner name={user.name} streakDays={user.readingStreakDays} />
       <StatTiles stats={stats} />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
           <ContinueReadingList items={currentlyReading} />
         </div>
         <div className="space-y-6">
-          <ReadingChallengeRing completed={completedThisYear.length} />
+          <ReadingChallengeRing completed={completedThisYear.length} initialGoal={user.readingChallengeGoal} />
           <AiInsightsCard insights={insights} />
         </div>
       </div>

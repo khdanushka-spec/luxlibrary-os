@@ -1,5 +1,5 @@
 import { hashCode } from "@/lib/book-detail";
-import { MOCK_STATS, type MockBook } from "@/lib/mock-data";
+import type { MockBook } from "@/lib/mock-data";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -52,7 +52,7 @@ export function getMonthlyReadingCounts(books: MockBook[]) {
   }));
 }
 
-export function getReadingStats(books: MockBook[]) {
+export function getReadingStats(books: MockBook[], readingStreakDays: number) {
   const currentlyReading = getCurrentlyReading(books);
   const completedThisYear = getCompletedThisYear(books);
   const pagesReadThisYear = completedThisYear.reduce(
@@ -62,7 +62,7 @@ export function getReadingStats(books: MockBook[]) {
   return {
     currentlyReadingCount: currentlyReading.length,
     completedThisYearCount: completedThisYear.length,
-    readingStreakDays: MOCK_STATS.readingStreakDays,
+    readingStreakDays,
     pagesReadThisYear,
   };
 }
