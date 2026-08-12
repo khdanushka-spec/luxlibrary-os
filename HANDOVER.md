@@ -1,3 +1,109 @@
+# Handover — 2026-08-12 (session 35 — finished the email notification feature)
+
+## Session 35 summary
+Continuation of session 34's item 5 ("IN PROGRESS" below). Dhanu supplied a real Resend API key (`re_69mfVLdF...`, now in `.env.local` and Vercel's Production/Preview/Development env vars as `RESEND_API_KEY`). Finished, verified, and pushed.
+
+**What shipped (commit on top of session 34's queued work):**
+- `RESEND_API_KEY` added to `.env.local` and Vercel (all 3 environments) via `vercel env add`.
+- **Found a real recipient mismatch before shipping**: a live test send via the Resend API revealed the "hellodkns" Resend account's sandbox sender (`onboarding@resend.dev`) can only deliver to **hellodkns@gmail.com** — not `khdanushka@gmail.com` (the old default, session 34's unconfirmed guess) or `bringbooksdkns@gmail.com` (what Dhanu asked for when asked directly). Asked her explicitly; she chose `bringbooksdkns@gmail.com` as the real recipient, **knowing delivery won't actually work until domain verification finishes** (see below).
+- `lib/email.ts`: added `NOTIFICATION_EMAIL = "bringbooksdkns@gmail.com"` as its own constant, **deliberately not reusing `SUPER_ADMIN_EMAIL`** (`lib/auth.ts`) — that constant controls who auto-becomes admin on signup, a completely different concern from where notification mail lands. Matches this codebase's existing pattern of plain hardcoded constants (`SITE_URL`, `SUPER_ADMIN_EMAIL`) rather than introducing a new env-var-driven config path for a non-secret.
+- Deleted `app/api/dev-check-tmp/route.ts` (twice — recreated it once, on purpose, to clean up the `verify-email-test@example.com` leftover test account via the same scoped/gated pattern sessions 30-33 established, then deleted it again immediately after). `app/api/` no longer exists in the tree.
+- Verified the full signup → email-attempt → graceful-failure path live: signed up a fresh `verify-email-test@example.com`, confirmed `signup()` completed and the user landed on `/pending` normally, confirmed via `preview_logs` that Resend was called and its 403 (expected, see below) was caught and logged, not surfaced to the user. Cleaned the test account up afterward.
+- `npx tsc --noEmit` and `npx eslint lib/email.ts lib/auth-actions.ts` both clean.
+
+## Domain verification — REAL BLOCKER, needs Dhanu to act in Cloudflare
+**Email will not actually reach `bringbooksdkns@gmail.com` until this is done.** Confirmed via Vercel CLI that `bringbooks.com` is a real domain on her account (registered 2026-08-10, 2 days old at the time) — not aspirational, as session 34's open questions worried. But its nameservers are **Cloudflare's** (`celine.ns.cloudflare.com` / `logan.ns.cloudflare.com`), not Vercel's — confirmed via `vercel dns ls bringbooks.com` returning zero records, and `vercel domains inspect` showing the nameserver mismatch (✗ marks). **This means `vercel dns add` cannot be used** — Vercel doesn't control this domain's DNS zone, Cloudflare does.
+
+Registered `bringbooks.com` as a sending domain in Resend via their API (`POST /domains`), which returned 3 DNS records that need to exist in Cloudflare (not Vercel) for verification to pass:
+
+| Type | Name | Value | Priority |
+|---|---|---|---|
+| TXT | `resend._domainkey` | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8eGUUNvfndB07nkFEj6mi+NfDFZkospgPz5gayVke9D6s47KNBqsOp58h1TIQClSfRdARKJMl44oYssegxSFuXVu4EYh2F9qHKiQJRsOIixoGbxSa4EY6ftsEcqrDaLKacWBSH2AkicrkMXadDIQv9yc6M0ZE+g2ZQ4a8RzQs+wIDAQAB` | — |
+| MX | `send` | `feedback-smtp.us-east-1.amazonses.com` | 10 |
+| TXT | `send` | `v=spf1 include:amazonses.com ~all` | — |
+
+Dhanu needs to add these three records in Cloudflare's dashboard for `bringbooks.com` herself (no Cloudflare API token/credentials available in this environment to do it directly). Once added and propagated, Resend's domain status flips from `not_started` to `verified` (check at resend.com/domains) — **at that point, `lib/email.ts`'s `from` address should also change** from the sandbox `onboarding@resend.dev` to something on the real domain (e.g. `BringBooks <notifications@bringbooks.com>`), otherwise it'll keep using the sandbox sender and hit the same one-recipient restriction regardless of domain verification status. Not yet done — flag as the very next step once she confirms the DNS records are in.
+
+## Files touched this session
+- `lib/email.ts` — `NOTIFICATION_EMAIL` constant added, `SUPER_ADMIN_EMAIL` import removed.
+- `.env.local` — `RESEND_API_KEY` appended (gitignored, not committed).
+- **Created then deleted twice**: `app/api/dev-check-tmp/route.ts` — confirmed gone, `app/api/` doesn't exist.
+- Everything from session 34's item 5 that was already written (`lib/auth-actions.ts`, `package.json`/`package-lock.json` for the `resend` dependency) — unchanged from session 34, now committed alongside this session's fixes.
+
+## Next steps
+1. **Dhanu adds the 3 DNS records above in Cloudflare** for `bringbooks.com`.
+2. Once Resend shows the domain as verified, change `lib/email.ts`'s `from` address off the sandbox sender to a `bringbooks.com` address.
+3. Re-test signup → email delivery end-to-end with the new `from` address; confirm the email actually lands in `bringbooksdkns@gmail.com`'s inbox (check Resend's dashboard activity/logs tab too).
+4. Optional, still not asked for: extend `lib/email.ts` to actually send the "reading streak reminders" / "weekly collection digest" emails now that real sending infrastructure exists (session 34's Settings toggles persist but don't send anything yet) — only if Dhanu wants it.
+
+## Open questions
+- Does `bringbooksdkns@gmail.com` (the email Dhanu supplied) actually receive mail she checks regularly, or should the eventual verified-domain sender go to a different address? Worth confirming once real delivery is working.
+- The real AI Librarian upgrade (rule-based → actual LLM) is still on the table from earlier sessions' "remaining modules" count — not touched this session either.
+- Carried forward, still unanswered: the "New messages" divider / unread-count design (no per-message read receipts) was a scope call made without asking Dhanu directly.
+
+---
+
+# Handover — 2026-08-11 21:20 (session 34 — book-share fix, Settings, PWA, editable stats, email notifications [IN PROGRESS])
+
+## Goal
+Same overall project as every session below: BringBooks (marketed as "BringBooks", repo `luxlibrary-os`), Dhanu's personal library OS. This session ran long and covered five distinct pieces of work, the last one **interrupted mid-implementation** by Dhanu asking for this handover. Read "State" below carefully before doing anything else.
+
+## State — READ THIS FIRST
+**Four things are done, verified, committed, and pushed to `master` and confirmed live in production. A fifth is uncommitted and mid-flight.**
+
+1. `e547f4b` — Fixed a real bug found via defensive review (not requested, found by reasoning through what the session-33 `deleteUser` cascade could expose): a community book-share message whose underlying `Book` gets deleted later (e.g. the sharer removes it from their library) silently rendered as a blank bubble. Now shows "This shared book is no longer available." Verified live by actually creating a share + deleting the book.
+2. `39c0e85` — **Settings now really persists.** Added 5 boolean columns to `User` (migration `20260811071643_add_user_settings`): `reduceMotion`, `aiReadingSuggestions`, `autoGenerateSummaries`, `readingStreakReminders`, `weeklyDigest`. Dark mode now drives real `next-themes` state (was a disconnected fake toggle) — found and fixed a real hydration bug doing this, see Gotchas. Reduce motion applies a real `.reduce-motion` CSS class app-wide. AI suggestions gates the dashboard's Today's Pick card. Auto-generate-summaries now actually drafts a template summary on `addBook` (`lib/book-summary.ts`, non-LLM, same honesty pattern as the AI Librarian). Streak reminders / weekly digest persist but **don't send anything** — flagged explicitly in the UI copy that there's no notification system. (This is now directly relevant to item 5 below.)
+3. `55d9311` — **Real PWA support.** `app/manifest.ts` + icons rasterized from the existing `LogoMark` via `sharp` (`generate-icons.mjs`, kept as a reusable script). Hand-written `public/sw.js` (no next-pwa/serwist): navigation requests go network-first with a cached `/offline` fallback page only on genuine failure; `/_next/static/` (content-hashed, always safe) gets cache-first. Explicitly does **not** attempt real offline data access — this is a live DB-backed app, that would need a much bigger local-first architecture change. Verified end-to-end by killing the dev server entirely and confirming the offline page served correctly, then confirming normal pages resumed once it came back.
+4. `b287353` — **Reading streak and challenge goal are now real, not fake.** Found while investigating a user report that there was "no edit option" for either: `MOCK_STATS.readingStreakDays` (hardcoded `46`) and `MOCK_READING_CHALLENGE.goal` (hardcoded `60`) were literally the same constant shown to every session regardless of activity, on the dashboard, profile, AND reading pages. Added real `readingStreakDays`/`readingChallengeGoal` columns on `User` (migration `20260811121119_add_reading_stats`), click-to-edit inline UI on the dashboard's streak badge and the `ReadingChallengeRing` (shared by all three pages). Existing users' streak correctly reset to 0 (was never real) rather than carrying the fake 46 forward.
+5. **IN PROGRESS, NOT COMMITTED — new-user-signup email notification.** Dhanu asked (screenshot of her Resend.com "API keys" dashboard, no key created yet) for an email to land in her inbox whenever someone signs up and needs approval. Built:
+   - `lib/email.ts` (new, untracked) — `sendNewUserApprovalEmail(user)`, uses the `resend` npm package (just installed, `package.json`/`package-lock.json` are modified but uncommitted), sends from Resend's sandbox address `onboarding@resend.dev` to `SUPER_ADMIN_EMAIL` (`khdanushka@gmail.com`, from `lib/auth.ts` — **my own default assumption, never explicitly confirmed with Dhanu**, see Open questions). Gracefully no-ops with a `console.warn` if `RESEND_API_KEY` isn't set — verified live, signup still worked fine without it.
+   - `lib/auth-actions.ts` (modified, uncommitted) — `signup()` now calls `void sendNewUserApprovalEmail(user)` (fire-and-forget, non-blocking) right after creating a non-super-admin (`PENDING`) user.
+   - `npx tsc --noEmit` and scoped `npx eslint lib/email.ts lib/auth-actions.ts` were both clean as of the last check.
+   - **`RESEND_API_KEY` is not set anywhere** — not in `.env.local`, not in Vercel. Dhanu had not yet clicked "Create API key" on Resend when this handover was triggered.
+   - **A throwaway diagnostic route is sitting in the tree, never invoked, never deleted**: `app/api/dev-check-tmp/route.ts`. It was written to delete a test signup (`verify-email-test@example.com`, currently `PENDING`) created while verifying the graceful-no-key-set path. **Delete this route before ever committing** (same rule as every prior session) — it was created but the interruption happened before it could be called or removed.
+
+## Key decisions (this session)
+- **Book-share fix was found by defensive review, not asked for** — after shipping `deleteUser`, deliberately reasoned through what its cascades could expose rather than waiting for a bug report. Worth doing again after any future feature that deletes/cascades data.
+- **Settings' two notification toggles (streak reminders, weekly digest) were deliberately left inert** in session 33/34-part-2, with UI copy saying so plainly, because there was no email infrastructure yet. **That's no longer true as of item 5** — once the Resend key is wired up and proven working for the signup-approval email, wiring those two toggles through the same `lib/email.ts` pattern is the natural next step (not yet built, not asked for yet either — flag it as an option, don't just build it unprompted).
+- **Resend sandbox sender (`onboarding@resend.dev`) chosen over setting up a verified custom domain** — no DNS/domain-verification work exists for this project, and the sandbox sender works with zero setup. **Real constraint**: Resend's sandbox sender can only deliver to the *Resend account's own verified email address* — it will silently fail (caught, logged, not surfaced anywhere) for any other recipient. This has NOT been confirmed against whatever email Dhanu's "hellodkns" Resend account is actually verified under. If it doesn't match `khdanushka@gmail.com`, either that mismatch needs fixing or she needs to verify a sending domain (e.g. `bringbooks.com`, if she actually owns/controls its DNS — `SITE_URL` in `lib/site.ts` already assumes this domain but it may just be aspirational).
+- **`SUPER_ADMIN_EMAIL` was used as the notification recipient by default, not asked** — matches the app's one established "admin identity" constant, reasonable default, but genuinely unconfirmed.
+
+## Gotchas / constraints learned this session
+- **`next-themes`'s `resolvedTheme` is `undefined` until the client mounts.** Using it directly to drive a controlled toggle's `checked` prop (`checked={resolvedTheme === "dark"}`) makes the toggle show the wrong state until *some other* theme interaction happens to trigger a re-render — a real, confusing bug, not just a first-paint flash. Fixed with a `useSyncExternalStore`-based `useMounted()` hook (see `components/settings/settings-view.tsx`), matching the exact pattern this codebase already established in `components/dashboard/live-clock.tsx` for the same class of server/client-mismatch problem — **do not** reach for `useState` + `useEffect(() => setMounted(true), [])` here, it trips this repo's `react-hooks/set-state-in-effect` eslint rule.
+- **`sharp` is already available** in `node_modules` (pulled in transitively) — usable for server-side/script-side image rasterization without adding a new dependency. Used it in `generate-icons.mjs` to render the `LogoMark` SVG to PNG at several sizes.
+- **Resend's sandbox sender (`onboarding@resend.dev`) only delivers to the sending account's own verified email** — untested against Dhanu's real Resend account yet, see State item 5 and Open questions.
+- The "another chat's dev server is running in this folder" hook fired again this session (as in session 33) — Dhanu appears to often have her own local dev server open in parallel. It did not actually block this session's `preview_start` calls this time; if it ever does, the established workaround from session 33 is to point the browser directly at the existing port via `preview_start({url: "http://localhost:<port>"})` instead of `preview_start({name: ...})`.
+
+## Files touched this session
+**Committed (`e547f4b`, `39c0e85`, `55d9311`, `b287353`):** see the four commit messages on `master` for full per-commit file lists — they're detailed and accurate, not worth duplicating here.
+
+**Uncommitted, in progress right now:**
+- `lib/email.ts` — new. Resend integration, `sendNewUserApprovalEmail()`.
+- `lib/auth-actions.ts` — modified. Calls the above from `signup()`.
+- `package.json`, `package-lock.json` — modified. Added `resend` npm dependency.
+- `app/api/dev-check-tmp/route.ts` — **throwaway, must delete before committing anything.** Deletes a user by exact email match (`verify-email-test@example.com`) when hit.
+- `.claude/launch.json` — untracked, pre-existing, intentionally never committed (local dev server port config).
+
+## Next steps (in order)
+1. **Get the actual `RESEND_API_KEY` value from Dhanu** — she was on `resend.com/api-keys` about to click "+ Create API key" when this session was interrupted for the handover.
+2. Add it to `.env.local` (local dev/testing) **and** to Vercel's production environment variables — the deployed app needs it too, it won't inherit from local.
+3. **Verify which email address Dhanu's Resend account ("hellodkns" org) is actually verified under.** If it's not `khdanushka@gmail.com`, the sandbox sender will silently fail to deliver every time (no error surfaced to any UI, only a server-side `console.error`) — either fix the recipient to match, or set up domain verification in Resend for a real `noreply@...` sender.
+4. Test end-to-end: sign up a fresh throwaway non-admin test account, confirm the email actually arrives (check Resend's own dashboard activity/logs tab if it doesn't — that'll show whether Resend accepted and attempted delivery, vs. the request never reaching Resend at all).
+5. **Delete `app/api/dev-check-tmp/route.ts`.**
+6. Clean up the leftover `verify-email-test@example.com` test account (still `PENDING`) — easiest via the admin UI's Delete button (built in session 33), no need for a new temp route.
+7. Re-run `npx tsc --noEmit` and `npx eslint` on touched files after any further changes.
+8. Commit, then push with the dual-GitHub-account dance: `gh auth switch --hostname github.com --user khdanushka-spec` before push, `... --user dhanu-af` after. Remote is `khdanushka-spec/luxlibrary-os`.
+9. Confirm the Vercel deploy succeeds afterward — no schema migration this time, but it's a new npm dependency (`resend`) plus a new required env var, worth a quick build-log check.
+10. Optional, not yet asked for: extend the same `lib/email.ts` pattern to actually send the "reading streak reminders" / "weekly collection digest" emails now that real sending exists (see Key decisions above) — only if Dhanu wants it, don't build unprompted.
+
+## Open questions
+- Is `khdanushka@gmail.com` the right recipient for the new-signup notification, or does Dhanu want it sent elsewhere?
+- Does Dhanu actually control DNS for `bringbooks.com` (used as `SITE_URL` throughout, and would be the natural domain to verify in Resend for a non-sandbox sender), or is that domain aspirational/unregistered?
+- The real AI Librarian upgrade (rule-based → actual LLM) is still on the table from an earlier "how many modules remaining" count — Dhanu pivoted to PWA, then editable stats, then email instead of that. Still needs a provider/API-key decision from her whenever she wants it.
+- Carried forward, still unanswered: the "New messages" divider / unread-count design (no per-message read receipts) was a scope call made without asking Dhanu directly.
+
+---
+
 # Handover — 2026-08-11 (session 33, "next" x2 — member delete/disable/enable, then reinstate)
 
 ## Session 33 summary (read this first, then the session 32 content below is still accurate background)

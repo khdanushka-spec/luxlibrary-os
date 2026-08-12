@@ -12,6 +12,7 @@ import {
   sessionExpiryDate,
   verifyPassword,
 } from "@/lib/auth";
+import { sendNewUserApprovalEmail } from "@/lib/email";
 
 export type AuthResult =
   | { ok: true; status: "APPROVED" | "PENDING" | "DISABLED" | "REJECTED" }
@@ -61,6 +62,7 @@ export async function signup(input: {
     });
 
     await createSessionForUser(user.id);
+    if (!isSuperAdmin) void sendNewUserApprovalEmail(user);
     revalidatePath("/", "layout");
     return { ok: true, status: user.status };
   } catch (error) {
