@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Database, Moon, Sparkles, User } from "lucide-react";
+import { Database, Moon, Shield, Sparkles, User } from "lucide-react";
 import { SettingsToggle } from "./settings-toggle";
 import { updateSetting, type UserSettings } from "@/lib/settings-actions";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 function subscribeNoop() {
   return () => {};
@@ -124,6 +126,34 @@ export function SettingsView({ initialSettings }: { initialSettings: UserSetting
         >
           Export library (unavailable)
         </button>
+      </section>
+
+      <section className="rounded-2xl border border-border/70 bg-card/60 p-6">
+        <h3 className="mb-1 flex items-center gap-2 text-sm font-medium text-foreground">
+          <Shield className="size-4 text-gold" />
+          Privacy &amp; Legal
+        </h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          How BringBooks handles your data, and the terms you agreed to when you signed up.
+        </p>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <Link href="/privacy" className="text-gold hover:underline">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="text-gold hover:underline">
+            Terms of Service
+          </Link>
+          <Link href="/cookies" className="text-gold hover:underline">
+            Cookie Policy
+          </Link>
+        </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          To request a copy of your data or delete your account, email{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-gold hover:underline">
+            {CONTACT_EMAIL}
+          </a>
+          .
+        </p>
       </section>
     </div>
   );

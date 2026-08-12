@@ -1,3 +1,43 @@
+# Handover — 2026-08-12 (session 37 — Australian legal compliance pass)
+
+## Session 37 summary
+Dhanu said she hopes to publish BringBooks and wants it audited against Australian legal requirements, with real Legal pages added (she sent a screenshot of a "LEGAL" footer mockup with Terms of Service / Privacy Policy / Cookie Policy). Built and shipped:
+
+- **Three new public pages**: `/terms`, `/privacy`, `/cookies` (`app/terms/page.tsx`, `app/privacy/page.tsx`, `app/cookies/page.tsx`), sharing a new `components/legal/legal-page.tsx` + `legal-header.tsx` layout and a `.legal-prose` CSS utility (`app/globals.css`) since this project has no Tailwind Typography plugin.
+- **Privacy Policy** is written against the Australian Privacy Principles (Privacy Act 1988). Notably covers **overseas data disclosure (APP 8)** — confirmed via `.env.local`'s `PGHOST` that Neon/Postgres runs on AWS `us-east-1`, and Resend is also US-based, so the policy explicitly discloses personal data is stored/processed in the US, not Australia. Lists exactly what's collected (matched against `prisma/schema.prisma`'s real `User`/`Book` fields, including `purchasePrice`/`insuranceValue`), why, and the 3 real third-party processors (Neon, Vercel, Resend).
+- **Terms of Service** includes an Acceptable Use / community-guidelines section (relevant since the app has a live community chat — Online Safety Act 2021 awareness, not full compliance machinery) and an Australian Consumer Law clause stating non-excludable consumer guarantees aren't affected by the liability limitation.
+- **Cookie Policy** is deliberately short and accurate: grepped for analytics/tracking libraries first and found none, so it correctly states BringBooks uses exactly one essential session cookie and no tracking/advertising cookies — didn't pad it out with boilerplate that doesn't apply.
+- **Footer** (`components/home/site-footer.tsx`): added a 4th "Legal" column linking to the 3 new pages. Also converted the column data from plain strings to `{label, href}` objects (needed real hrefs for Legal) — kept the pre-existing Product/Collection/Company links exactly as they were (still placeholder `#`/`mailto:` links), deliberately did not fix those, out of scope for this pass.
+- **Signup form** (`components/auth/signup-form.tsx`): added a "By requesting access, you agree to our Terms of Service and Privacy Policy" line with real links — there was no reference to either at account creation before this.
+- **Settings page** (`components/settings/settings-view.tsx`): added a "Privacy & Legal" section — links to all 3 pages, plus a note that data-access/deletion requests go to `hello@bringbooks.com` (there's no self-service account deletion, only admin-triggered `deleteUser` in `lib/admin-actions.ts`, so this is the real mechanism today).
+- Added `CONTACT_EMAIL` constant to `lib/site.ts` (was previously only inline in `cta-section.tsx`) and reused it across all new content.
+- `app/sitemap.ts` updated with the 3 new URLs. No change needed to `app/robots.ts` — legal pages were never in its private-paths disallow list, so they're public/indexable by default, correctly.
+
+**Honesty flag stated directly to Dhanu (see final chat message)**: this is a solid good-faith pass covering the Privacy Act/APPs, Spam Act awareness, and ACL disclosures, written by a non-lawyer AI — recommended she get a solicitor's review before fully publishing, especially given the community/UGC liability surface. Did not overstate this as guaranteed legal compliance.
+
+## Verification
+`npx tsc --noEmit` and scoped `eslint` on every touched file are clean. Verified live in the browser: home footer shows the new Legal column with working links; all 3 legal pages render with correct prose styling; signup form shows the new consent line; Settings page (via a throwaway approved test account, cleaned up after) shows the new Privacy & Legal section with all 4 links resolving correctly.
+
+**New gotcha hit this session, worth remembering**: this session's Browser-pane `computer` click tool intermittently failed to actually trigger client-form `onClick`/`onSubmit` handlers (silently — no error, the click just didn't fire the handler) on both the login and signup forms, requiring several retries. The reliable workaround used here: `javascript_tool` dispatching a real native `input` event via the `HTMLInputElement.prototype.value` setter (React-controlled inputs ignore a plain `.value =` assignment) followed by `element.click()`, which fired the handler every time it was tried. If `computer` clicks on a client-side form ever seem to silently no-op again (page doesn't navigate, no server log entry appears), switch to this `javascript_tool` pattern rather than retrying `computer` repeatedly.
+
+## Files touched this session
+- `app/terms/page.tsx`, `app/privacy/page.tsx`, `app/cookies/page.tsx` — new.
+- `components/legal/legal-page.tsx`, `components/legal/legal-header.tsx` — new.
+- `app/globals.css` — `.legal-prose` utility added.
+- `components/home/site-footer.tsx` — Legal column added, link data restructured to objects.
+- `components/auth/signup-form.tsx` — consent notice added.
+- `components/settings/settings-view.tsx` — Privacy & Legal section added.
+- `lib/site.ts` — `CONTACT_EMAIL` constant added.
+- `app/sitemap.ts` — 3 new URLs added.
+
+## Next steps
+1. Not done, and deliberately flagged rather than built unprompted: an in-app "Report message" button in community chat would strengthen Online Safety Act alignment beyond the current email-based reporting route mentioned in the Terms. Worth doing before wide public launch if the community feature stays on.
+2. Self-service account deletion doesn't exist (admin-only today) — the Privacy Policy and Settings both point to emailing for a deletion request as the real mechanism. Consider building real self-service deletion if Dhanu wants to reduce her own admin overhead once there are real external users.
+3. Get an actual solicitor to review before full public launch — flagged to Dhanu directly, not just in this doc.
+4. Carried forward, still unanswered: the "New messages" divider / unread-count design (no per-message read receipts) — scope call made without asking Dhanu directly.
+
+---
+
 # Handover — 2026-08-12 (session 36 — domain verified, real sender live)
 
 ## Session 36 summary

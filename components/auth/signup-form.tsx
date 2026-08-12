@@ -89,6 +89,18 @@ export function SignupForm() {
         >
           {isPending ? "Creating account…" : "Request access"}
         </button>
+
+        <p className="text-center text-[0.7rem] leading-relaxed text-muted-foreground">
+          By requesting access, you agree to our{" "}
+          <Link href="/terms" className="text-gold hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-gold hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">

@@ -1,17 +1,41 @@
 import { LogoMark } from "./logo-mark";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 const COLUMNS = [
   {
     title: "Product",
-    links: ["Library", "Library Map", "AI Librarian", "Analytics"],
+    links: [
+      { label: "Library", href: "#library-map" },
+      { label: "Library Map", href: "#library-map" },
+      { label: "AI Librarian", href: "#ai-librarian" },
+      { label: "Analytics", href: "#analytics" },
+    ],
   },
   {
     title: "Collection",
-    links: ["Wishlist", "Reading Life", "Notes", "Timeline"],
+    links: [
+      { label: "Wishlist", href: "#" },
+      { label: "Reading Life", href: "#reading-life" },
+      { label: "Notes", href: "#" },
+      { label: "Timeline", href: "#" },
+    ],
   },
   {
     title: "Company",
-    links: ["Design Principles", "Roadmap", "Security", "Contact"],
+    links: [
+      { label: "Design Principles", href: "#" },
+      { label: "Roadmap", href: "#" },
+      { label: "Security", href: "#" },
+      { label: "Contact", href: `mailto:${CONTACT_EMAIL}` },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Cookie Policy", href: "/cookies" },
+    ],
   },
 ];
 
@@ -19,7 +43,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border/60 py-16">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="flex flex-col gap-12 sm:flex-row sm:justify-between">
+        <div className="flex flex-col gap-12 lg:flex-row lg:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2.5">
               <LogoMark className="h-5 w-5" />
@@ -32,7 +56,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
             {COLUMNS.map((col) => (
               <div key={col.title}>
                 <h4 className="text-sm font-medium text-foreground">
@@ -40,12 +64,12 @@ export function SiteFooter() {
                 </h4>
                 <ul className="mt-4 space-y-2.5">
                   {col.links.map((link) => (
-                    <li key={link}>
+                    <li key={link.label}>
                       <a
-                        href="#"
+                        href={link.href}
                         className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        {link}
+                        {link.label}
                       </a>
                     </li>
                   ))}
