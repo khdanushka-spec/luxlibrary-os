@@ -23,7 +23,7 @@ export async function sendNewUserApprovalEmail(user: { name: string; email: stri
 
   try {
     await resend.emails.send({
-      from: "BringBooks <onboarding@resend.dev>",
+      from: "BringBooks <notifications@bringbooks.com>",
       to: NOTIFICATION_EMAIL,
       subject: `New BringBooks access request — ${user.name}`,
       html: `

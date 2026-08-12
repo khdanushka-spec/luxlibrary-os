@@ -1,3 +1,26 @@
+# Handover — 2026-08-12 (session 36 — domain verified, real sender live)
+
+## Session 36 summary
+Dhanu added the 3 DNS records session 35 documented (in Cloudflare, outside this tool's reach) and confirmed Resend verified `bringbooks.com`. Closed out the feature:
+
+- Confirmed verification directly via the Resend API (`GET /domains` → `bringbooks.com` `status: "verified"`) before touching anything.
+- `lib/email.ts`: `from` changed from the sandbox `onboarding@resend.dev` to `BringBooks <notifications@bringbooks.com>` — the one line session 35 flagged as the last step.
+- **Verified real delivery, not just a clean build**: sent a direct test via the Resend API first (got a message `id` back instead of the old 403), then ran a full real signup through the actual app (`verify-domain-sender-test@example.com` via the browser) and confirmed via `GET /emails` on Resend's own API that the real signup-triggered notification (subject "New BringBooks access request — Verify Domain Sender") shows `last_event: "delivered"` to `bringbooksdkns@gmail.com`. This is the first time this feature has been confirmed to actually deliver mail, not just fail gracefully as designed.
+- `npx tsc --noEmit` and `npx eslint lib/email.ts` clean.
+- Cleaned up the test account via the same scoped/gated temp-route pattern (created, hit once, deleted again — `app/api/` does not exist in the tree).
+
+**The new-user-signup email notification feature is now fully done and confirmed working in dev.** Deploying to production next; no DB migration involved, just the one sender-address line change.
+
+## Files touched this session
+- `lib/email.ts` — `from` address only, one line.
+
+## Next steps
+1. Deploy to production (in progress as this handover is written) and re-confirm via Resend's dashboard/API that a real production signup delivers too — dev and prod share the same Resend account/domain, but worth a real check since this is the first production signup with the live sender.
+2. Optional, still not asked for: extend `lib/email.ts` to send the "reading streak reminders" / "weekly collection digest" emails now that real sending is fully proven end-to-end (Settings toggles persist but don't send anything yet, per session 34).
+3. Carried forward, still unanswered: the "New messages" divider / unread-count design (no per-message read receipts) was a scope call made without asking Dhanu directly.
+
+---
+
 # Handover — 2026-08-12 (session 35 — finished the email notification feature)
 
 ## Session 35 summary
