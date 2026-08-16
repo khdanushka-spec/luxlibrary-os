@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LogoMark } from "./logo-mark";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AnnouncementBanner } from "@/components/announcement-banner";
 
 const NAV_LINKS = [
   { label: "Library", href: "#library-map" },
@@ -24,50 +25,53 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "glass border-b border-border/60 py-3"
-          : "border-b border-transparent py-5"
-      }`}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-10">
-        <Link href="#top" className="flex items-center gap-2.5">
-          <LogoMark className="h-6 w-6" />
-          <span className="font-display text-[1.05rem] tracking-tight text-foreground">
-            Bring<span className="text-gold">Books</span>
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link
-            href="/login"
-            className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"
-          >
-            Sign in
+    <div className="fixed inset-x-0 top-0 z-50">
+      <AnnouncementBanner />
+      <header
+        className={`transition-all duration-500 ${
+          scrolled
+            ? "glass border-b border-border/60 py-3"
+            : "border-b border-transparent py-5"
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-10">
+          <Link href="#top" className="flex items-center gap-2.5">
+            <LogoMark className="h-6 w-6" />
+            <span className="font-display text-[1.05rem] tracking-tight text-foreground">
+              Bring<span className="text-gold">Books</span>
+            </span>
           </Link>
-          <Button
-            render={<Link href="/login" />}
-            nativeButton={false}
-            className="h-9 rounded-full bg-gold px-4 text-[0.85rem] font-medium text-gold-foreground hover:bg-gold/90"
-          >
-            Enter your library
-          </Button>
+
+          <nav className="hidden items-center gap-8 md:flex">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link
+              href="/login"
+              className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"
+            >
+              Sign in
+            </Link>
+            <Button
+              render={<Link href="/login" />}
+              nativeButton={false}
+              className="h-9 rounded-full bg-gold px-4 text-[0.85rem] font-medium text-gold-foreground hover:bg-gold/90"
+            >
+              Enter your library
+            </Button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 }

@@ -1,3 +1,20 @@
+# Handover — 2026-08-12 (session 38 — temporary site-update announcement banner)
+
+## Session 38 summary
+Dhanu asked for a temporary "we're updating the site" banner across all of her public-facing websites (14 separate repos, not just this one). This is BringBooks' piece of that multi-project sweep.
+
+- New `components/announcement-banner.tsx`, gated by a single `SHOW_ANNOUNCEMENT_BANNER` boolean in `lib/site.ts` — flip to `false` to remove it everywhere, verified this actually works (toggled off, confirmed it disappears cleanly with no layout gap; toggled back on).
+- Text is fixed across all 14 sites in this sweep for consistency: "WEBSITE UPDATE · We're currently updating our website and digital services. Some information and features may change as we complete these updates. Thank you for your patience as we continue to improve your experience." No icons, no "under construction," no availability/legal claims — matches Dhanu's explicit design constraints.
+- Wired into the marketing home page and the `(auth)` layout (login/signup/pending) — **not** the `(os)` app shell, since that's the private authenticated product, not the public-facing website.
+- **Real structural wrinkle**: `SiteHeader` uses `position: fixed` (not sticky), so a banner placed before it in the DOM would render underneath it, not above — fixed elements ignore document flow. Fixed by moving the `fixed inset-x-0 top-0 z-50` wrapper one level up: `SiteHeader` now renders `<AnnouncementBanner /><header>...` inside a wrapping div, and the header itself lost its own `fixed` positioning (now just inherits from the wrapper). This was the minimal necessary change — deliberately did **not** touch `HeroSection`'s `pt-36`/`pt-44` padding, verified via direct DOM measurement at 375px/470px/1280px viewports that the hero heading still clears the combined banner+header with 44–112px to spare at every width, so no visible layout break.
+- Verified via `javascript_tool` DOM measurement rather than screenshots (Browser-pane screenshot tool wasn't compositing this session) — confirmed banner text, wrapper height, and hero clearance at three breakpoints, then confirmed the disable flag actually removes it.
+- `npx tsc --noEmit` and scoped `eslint` clean.
+
+## Next steps
+Same as session 37's still-open items, unrelated to this change. This banner is meant to come down once Dhanu says the "update" period is over — just flip `SHOW_ANNOUNCEMENT_BANNER` to `false` in `lib/site.ts`.
+
+---
+
 # Handover — 2026-08-12 (session 37 — Australian legal compliance pass)
 
 ## Session 37 summary
